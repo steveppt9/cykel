@@ -2,7 +2,7 @@
 // Cykel PWA — Encrypted IndexedDB Storage
 // ============================================
 
-import { encrypt, decrypt } from './crypto.js';
+import { encrypt, decrypt, deriveKeyFromPassphrase } from './crypto.js';
 
 const DB_NAME = 'cykel';
 const DB_VERSION = 1;
@@ -58,19 +58,19 @@ export async function dataExists() {
 }
 
 /**
- * Save app data: serialize to JSON, encrypt, write to IndexedDB.
+ * Save app data using a CryptoKey (not a passphrase).
  */
-export async function save(passphrase, appData) {
+export async function save(cryptoKey, appData) {
   const json = new TextEncoder().encode(JSON.stringify(appData));
-  const encrypted = await encrypt(passphrase, json);
+  const encrypted = await encrypt(cryptoKey, json);
   const db = await openDB();
   await dbPut(db, DATA_KEY, encrypted);
   db.close();
 }
 
 /**
- * Load app data: read from IndexedDB, decrypt, parse JSON.
- * Throws on wrong passphrase.
+ * Load app data: decrypt with passphrase, return { data, key }.
+ * Caller holds the key for future saves, drops the passphrase.
  */
 export async function load(passphrase) {
   const db = await openDB();
@@ -81,8 +81,16 @@ export async function load(passphrase) {
     throw new Error('No data found');
   }
 
-  const decrypted = await decrypt(passphrase, new Uint8Array(encrypted));
-  return JSON.parse(new TextDecoder().decode(decrypted));
+  const { plaintext, key } = await decrypt(passphrase, new Uint8Array(encrypted));
+  const data = JSON.parse(new TextDecoder().decode(plaintext));
+  return { data, key };
+}
+
+/**
+ * Derive a fresh CryptoKey for first-time setup.
+ */
+export async function createKey(passphrase) {
+  return deriveKeyFromPassphrase(passphrase);
 }
 
 /**

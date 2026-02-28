@@ -122,6 +122,14 @@ input, textarea {
   animation: screenIn var(--duration) var(--ease) forwards;
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
 @keyframes screenIn {
   from {
     opacity: 0;
@@ -1243,6 +1251,90 @@ input, textarea {
 
 .btn-text:active {
   color: var(--text-secondary);
+}
+
+/* ============================================
+   Modal
+   ============================================ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--s-xl);
+  transition: background var(--duration) var(--ease);
+}
+
+.modal-overlay.modal-visible {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.modal-card {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  padding: var(--s-2xl);
+  max-width: 320px;
+  width: 100%;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: all var(--duration) var(--ease);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-visible .modal-card {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: var(--s-sm);
+}
+
+.modal-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--s-xl);
+}
+
+.modal-actions {
+  display: flex;
+  gap: var(--s-sm);
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  font-size: 15px;
+  font-weight: 600;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.modal-btn:active {
+  transform: scale(0.96);
+}
+
+.modal-cancel {
+  background: var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.modal-confirm {
+  background: var(--accent);
+  color: white;
+}
+
+.modal-destructive {
+  background: var(--danger);
+  color: white;
 }
 
 .install-desktop-msg {
