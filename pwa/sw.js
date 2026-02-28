@@ -4,18 +4,18 @@
 // Zero network calls after first load.
 // ============================================
 
-const CACHE_NAME = 'cykel-v1';
+const CACHE_NAME = 'cykel-v2';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/crypto.js',
-  '/storage.js',
-  '/prediction.js',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
+  './',
+  './index.html',
+  './styles.css',
+  './app.js',
+  './crypto.js',
+  './storage.js',
+  './prediction.js',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
 ];
 
 // Install: cache all assets
