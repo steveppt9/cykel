@@ -6,6 +6,100 @@ import * as storage from './storage.js';
 import { rebuildCycles, predict, fertilityWindow, cycleStats, fmtDate } from './prediction.js';
 
 // ============================================
+// Install prompt
+// ============================================
+
+let deferredInstallPrompt = null;
+
+// Capture Android's beforeinstallprompt
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+});
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+}
+
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+function isAndroid() {
+  return /android/i.test(navigator.userAgent);
+}
+
+function isMobile() {
+  return isIOS() || isAndroid() || /mobile/i.test(navigator.userAgent);
+}
+
+function shouldShowInstall() {
+  if (isStandalone()) return false;
+  if (localStorage.getItem('cykel_skip_install')) return false;
+  return true;
+}
+
+function showInstallPrompt() {
+  showScreen('install');
+
+  if (isIOS()) {
+    document.getElementById('install-ios').style.display = 'block';
+  } else if (deferredInstallPrompt || isAndroid()) {
+    document.getElementById('install-android').style.display = 'block';
+  } else if (!isMobile()) {
+    document.getElementById('install-desktop').style.display = 'block';
+  } else {
+    // Fallback for mobile browsers without beforeinstallprompt
+    document.getElementById('install-android').style.display = 'block';
+  }
+}
+
+// Android native install button
+document.getElementById('btn-android-install').addEventListener('click', async () => {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const result = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (result.outcome === 'accepted') {
+      skipInstallScreen();
+    }
+  } else {
+    // Fallback: show manual instructions
+    document.getElementById('install-android').innerHTML = `
+      <div class="install-how">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <span class="step-text">Tap the <strong>menu</strong> button (three dots)</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <span class="step-text">Tap <strong>Add to Home screen</strong></span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <span class="step-text">Tap <strong>Add</strong> — that's it</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+});
+
+// Skip install
+document.getElementById('btn-skip-install').addEventListener('click', skipInstallScreen);
+
+function skipInstallScreen() {
+  localStorage.setItem('cykel_skip_install', '1');
+  startApp();
+}
+
+// ============================================
 // State
 // ============================================
 
@@ -63,6 +157,14 @@ async function init() {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
 
+  if (shouldShowInstall()) {
+    showInstallPrompt();
+  } else {
+    startApp();
+  }
+}
+
+async function startApp() {
   const exists = await storage.dataExists();
   showScreen(exists ? 'unlock' : 'setup');
 }

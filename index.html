@@ -15,6 +15,86 @@
 <body>
   <div id="app">
 
+    <!-- Install Prompt (shown to mobile browser users) -->
+    <div id="screen-install" class="screen" style="display:none">
+      <div class="screen-inner center-v">
+        <div class="brand-block">
+          <div class="brand-mark"></div>
+          <h1 class="wordmark">cykel</h1>
+          <p class="tagline">your body. your data. your device.</p>
+        </div>
+
+        <div class="install-pitch">
+          <div class="pitch-item">
+            <div class="pitch-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div class="pitch-text">
+              <span class="pitch-title">Private by design</span>
+              <span class="pitch-desc">Encrypted on your phone. No accounts. No servers.</span>
+            </div>
+          </div>
+          <div class="pitch-item">
+            <div class="pitch-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="pitch-text">
+              <span class="pitch-title">Predictions & fertility</span>
+              <span class="pitch-desc">Track your cycle. See what's coming next.</span>
+            </div>
+          </div>
+          <div class="pitch-item">
+            <div class="pitch-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+            </div>
+            <div class="pitch-text">
+              <span class="pitch-title">Works offline forever</span>
+              <span class="pitch-desc">Install once. Never needs internet again.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Android install (uses native prompt) -->
+        <div id="install-android" class="install-steps" style="display:none">
+          <button id="btn-android-install" class="btn-primary">
+            <span>Install Cykel</span>
+          </button>
+        </div>
+
+        <!-- iOS install (manual steps) -->
+        <div id="install-ios" class="install-steps" style="display:none">
+          <div class="install-how">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <span class="step-text">Tap the <strong>share</strong> button</span>
+                <svg class="step-icon-share" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <span class="step-text">Scroll down, tap <strong>Add to Home Screen</strong></span>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <span class="step-text">Tap <strong>Add</strong> — that's it</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop / fallback -->
+        <div id="install-desktop" class="install-steps" style="display:none">
+          <p class="install-desktop-msg">Open this link on your phone to install Cykel.</p>
+        </div>
+
+        <button id="btn-skip-install" class="btn-text">Continue in browser</button>
+      </div>
+    </div>
+
     <!-- Setup Screen -->
     <div id="screen-setup" class="screen" style="display:none">
       <div class="screen-inner center-v">

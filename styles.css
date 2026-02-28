@@ -1125,3 +1125,133 @@ input, textarea {
   display: flex;
   gap: var(--s-xs);
 }
+
+/* ============================================
+   Install Prompt
+   ============================================ */
+
+.install-pitch {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-lg);
+}
+
+.pitch-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-lg);
+}
+
+.pitch-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: var(--accent-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.pitch-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.pitch-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.pitch-desc {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+.install-steps {
+  width: 100%;
+  max-width: 320px;
+}
+
+.install-how {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-lg);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: var(--s-xl);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--s-lg);
+}
+
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-content {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  flex: 1;
+}
+
+.step-text {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.step-text strong {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.step-icon-share {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.btn-text {
+  padding: var(--s-md) var(--s-xl);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.btn-text:active {
+  color: var(--text-secondary);
+}
+
+.install-desktop-msg {
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding: var(--s-xl);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
