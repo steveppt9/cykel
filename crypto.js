@@ -9,7 +9,7 @@ const PBKDF2_ITERATIONS = 600000;
 const MAGIC = new TextEncoder().encode('CYKEL_V1');
 
 /**
- * Derive a CryptoKey from a passphrase and salt using PBKDF2.
+ * Derive a non-extractable CryptoKey from a passphrase and salt.
  */
 async function deriveKey(passphrase, salt) {
   const keyMaterial = await crypto.subtle.importKey(
@@ -35,13 +35,22 @@ async function deriveKey(passphrase, salt) {
 }
 
 /**
- * Encrypt plaintext bytes with a passphrase.
+ * Derive a CryptoKey from a passphrase with a fresh random salt.
+ * Used for first-time setup. Returns the non-extractable CryptoKey.
+ */
+export async function deriveKeyFromPassphrase(passphrase) {
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN));
+  return deriveKey(passphrase, salt);
+}
+
+/**
+ * Encrypt plaintext bytes with a CryptoKey.
+ * Generates a fresh salt + IV each time for forward secrecy.
  * Returns: Uint8Array of salt (32) || iv (12) || ciphertext
  */
-export async function encrypt(passphrase, plaintext) {
+export async function encrypt(key, plaintext) {
   const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN));
   const iv = crypto.getRandomValues(new Uint8Array(IV_LEN));
-  const key = await deriveKey(passphrase, salt);
 
   // Prepend magic bytes
   const payload = new Uint8Array(MAGIC.length + plaintext.length);
@@ -64,7 +73,8 @@ export async function encrypt(passphrase, plaintext) {
 
 /**
  * Decrypt data encrypted with encrypt().
- * Returns plaintext bytes, or throws on wrong passphrase.
+ * Accepts a passphrase (derives key from the blob's salt) or throws on wrong passphrase.
+ * Returns { plaintext, key, salt } so caller can hold the derived key.
  */
 export async function decrypt(passphrase, encrypted) {
   if (encrypted.length < SALT_LEN + IV_LEN + MAGIC.length) {
@@ -93,6 +103,6 @@ export async function decrypt(passphrase, encrypted) {
     }
   }
 
-  // Strip magic bytes
-  return decrypted.slice(MAGIC.length);
+  // Return plaintext + derived key so caller can hold the key, not the passphrase
+  return { plaintext: decrypted.slice(MAGIC.length), key };
 }

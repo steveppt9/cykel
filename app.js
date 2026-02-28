@@ -103,7 +103,7 @@ function skipInstallScreen() {
 // State
 // ============================================
 
-let passphrase = null;  // held in memory only while unlocked
+let cryptoKey = null;   // non-extractable CryptoKey, held while unlocked
 let appData = null;
 let currentYear, currentMonth;
 let selectedFlow = 'None';
@@ -128,8 +128,8 @@ function defaultAppData() {
 // ============================================
 
 async function saveData() {
-  if (!passphrase || !appData) return;
-  await storage.save(passphrase, appData);
+  if (!cryptoKey || !appData) return;
+  await storage.save(cryptoKey, appData);
 }
 
 // ============================================
@@ -191,16 +191,16 @@ btnSetup.addEventListener('click', async () => {
   setupError.textContent = '';
   btnSetup.disabled = true;
   try {
-    passphrase = setupPass.value;
-    appData = defaultAppData();
-    await saveData();
+    cryptoKey = await storage.createKey(setupPass.value);
     setupPass.value = '';
     setupConfirm.value = '';
+    appData = defaultAppData();
+    await saveData();
     enterApp();
   } catch (e) {
     setupError.textContent = 'Something went wrong. Try again.';
     btnSetup.disabled = false;
-    passphrase = null;
+    cryptoKey = null;
     appData = null;
   }
 });
@@ -213,15 +213,89 @@ const unlockPass = document.getElementById('unlock-pass');
 const btnUnlock = document.getElementById('btn-unlock');
 const unlockError = document.getElementById('unlock-error');
 
+// Brute-force protection
+const MAX_ATTEMPTS = 5;
+const BASE_LOCKOUT_MS = 30000; // 30 seconds
+let lockoutTimer = null;
+
+function getFailedAttempts() {
+  return parseInt(localStorage.getItem('cykel_failed_attempts') || '0', 10);
+}
+
+function setFailedAttempts(n) {
+  localStorage.setItem('cykel_failed_attempts', String(n));
+}
+
+function getLockoutUntil() {
+  return parseInt(localStorage.getItem('cykel_lockout_until') || '0', 10);
+}
+
+function setLockoutUntil(ts) {
+  localStorage.setItem('cykel_lockout_until', String(ts));
+}
+
+function clearLockout() {
+  localStorage.removeItem('cykel_failed_attempts');
+  localStorage.removeItem('cykel_lockout_until');
+  clearInterval(lockoutTimer);
+  lockoutTimer = null;
+}
+
+function startLockoutCountdown() {
+  const until = getLockoutUntil();
+  if (!until || Date.now() >= until) {
+    unlockError.textContent = '';
+    btnUnlock.disabled = false;
+    unlockPass.disabled = false;
+    clearInterval(lockoutTimer);
+    lockoutTimer = null;
+    return;
+  }
+
+  btnUnlock.disabled = true;
+  unlockPass.disabled = true;
+
+  function tick() {
+    const remaining = Math.max(0, Math.ceil((getLockoutUntil() - Date.now()) / 1000));
+    if (remaining <= 0) {
+      unlockError.textContent = '';
+      btnUnlock.disabled = false;
+      unlockPass.disabled = false;
+      clearInterval(lockoutTimer);
+      lockoutTimer = null;
+    } else {
+      unlockError.textContent = `Too many attempts. Try again in ${remaining}s`;
+    }
+  }
+
+  tick();
+  lockoutTimer = setInterval(tick, 1000);
+}
+
+// On page load, resume lockout if active
+if (getLockoutUntil() > Date.now()) {
+  setTimeout(startLockoutCountdown, 0);
+}
+
 btnUnlock.addEventListener('click', async () => {
+  // Check active lockout
+  if (getLockoutUntil() > Date.now()) {
+    startLockoutCountdown();
+    return;
+  }
+
   const pass = unlockPass.value;
   unlockError.textContent = '';
   if (!pass) return;
   btnUnlock.disabled = true;
 
   try {
-    appData = await storage.load(pass);
-    passphrase = pass;
+    const result = await storage.load(pass);
+    // Passphrase is never stored — only the derived key
+    unlockPass.value = '';
+    appData = result.data;
+    cryptoKey = result.key;
+    clearLockout();
 
     // Ensure settings exist (migration from older data)
     if (!appData.settings) appData.settings = defaultAppData().settings;
@@ -230,17 +304,29 @@ btnUnlock.addEventListener('click', async () => {
     appData.cycles = rebuildCycles(appData.day_logs);
     await saveData();
 
-    unlockPass.value = '';
     enterApp();
   } catch (e) {
-    unlockError.textContent = 'Wrong passphrase';
+    const attempts = getFailedAttempts() + 1;
+    setFailedAttempts(attempts);
+
+    if (attempts >= MAX_ATTEMPTS) {
+      // Exponential lockout: 30s, 60s, 120s, ...
+      const multiplier = Math.pow(2, Math.floor(attempts / MAX_ATTEMPTS) - 1);
+      const lockoutMs = BASE_LOCKOUT_MS * multiplier;
+      setLockoutUntil(Date.now() + lockoutMs);
+      startLockoutCountdown();
+    } else {
+      const remaining = MAX_ATTEMPTS - attempts;
+      unlockError.textContent = `Wrong passphrase. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`;
+    }
+
     unlockPass.value = '';
     unlockPass.focus();
     const wrap = unlockPass.parentElement;
     wrap.style.animation = 'shake 400ms ease';
     setTimeout(() => wrap.style.animation = '', 400);
   }
-  btnUnlock.disabled = false;
+  if (!lockoutTimer) btnUnlock.disabled = false;
 });
 
 unlockPass.addEventListener('keydown', e => { if (e.key === 'Enter') btnUnlock.click(); });
@@ -279,14 +365,14 @@ document.addEventListener('keydown', resetAutoLock);
 
 // Lock on visibility change (phone screen off / tab switch)
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && passphrase) {
+  if (document.hidden && cryptoKey) {
     doLock();
   }
 });
 
 function doLock() {
   clearTimeout(autoLockTimer);
-  passphrase = null;
+  cryptoKey = null;
   appData = null;
   showScreen('unlock');
 }
@@ -590,41 +676,82 @@ document.getElementById('autolock-up').addEventListener('click', async () => {
 // Export
 document.getElementById('btn-export').addEventListener('click', () => {
   if (!appData) return;
-  const json = JSON.stringify(appData, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `cykel-export-${fmtDate(new Date())}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  showModal(
+    'Export unencrypted?',
+    'This creates a plaintext file anyone can read. Only save it somewhere private.',
+    'Export Anyway',
+    () => {
+      const json = JSON.stringify(appData, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cykel-export-${fmtDate(new Date())}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  );
 });
 
 // Wipe
-document.getElementById('btn-wipe').addEventListener('click', async () => {
-  if (!confirm('Are you sure? This permanently deletes all your data.')) return;
-  if (!confirm('Really sure? There is no way to undo this.')) return;
-  await storage.wipe();
-  passphrase = null;
-  appData = null;
-  showScreen('setup');
+document.getElementById('btn-wipe').addEventListener('click', () => {
+  showModal(
+    'Erase everything?',
+    'All your cycle data will be permanently deleted. This cannot be undone.',
+    'Erase All Data',
+    async () => {
+      await storage.wipe();
+      cryptoKey = null;
+      appData = null;
+      clearLockout();
+      showScreen('setup');
+    },
+    true // destructive
+  );
 });
 
 // ============================================
-// Shake animation
+// Modal
 // ============================================
 
-const shakeStyle = document.createElement('style');
-shakeStyle.textContent = `
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-8px); }
-    40% { transform: translateX(8px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
-  }
-`;
-document.head.appendChild(shakeStyle);
+function showModal(title, message, confirmLabel, onConfirm, destructive = false) {
+  // Remove any existing modal
+  const existing = document.getElementById('cykel-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'cykel-modal';
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-card">
+      <h3 class="modal-title">${title}</h3>
+      <p class="modal-message">${message}</p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-cancel">Cancel</button>
+        <button class="modal-btn ${destructive ? 'modal-destructive' : 'modal-confirm'}">${confirmLabel}</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('app').appendChild(overlay);
+
+  // Trigger entry animation
+  requestAnimationFrame(() => overlay.classList.add('modal-visible'));
+
+  const close = () => {
+    overlay.classList.remove('modal-visible');
+    setTimeout(() => overlay.remove(), 200);
+  };
+
+  overlay.querySelector('.modal-cancel').addEventListener('click', close);
+  overlay.querySelector('.modal-confirm, .modal-destructive').addEventListener('click', () => {
+    close();
+    onConfirm();
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
+}
 
 // ============================================
 // Boot
