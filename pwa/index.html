@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#C4654A" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self';" />
+  <title>Cykel</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- Setup Screen -->
+    <div id="screen-setup" class="screen" style="display:none">
+      <div class="screen-inner center-v">
+        <div class="brand-block">
+          <div class="brand-mark"></div>
+          <h1 class="wordmark">cykel</h1>
+          <p class="tagline">your body. your data. your device.</p>
+        </div>
+        <div class="form-block">
+          <div class="input-wrap">
+            <input type="password" id="setup-pass" placeholder="Create a passphrase" autocomplete="off" />
+          </div>
+          <div class="input-wrap">
+            <input type="password" id="setup-confirm" placeholder="Confirm passphrase" autocomplete="off" />
+          </div>
+          <button id="btn-setup" class="btn-primary" disabled>
+            <span>Get Started</span>
+          </button>
+          <p id="setup-error" class="error-text"></p>
+        </div>
+        <p class="disclaimer">No recovery. Forget this passphrase and your data is gone forever. By design.</p>
+      </div>
+    </div>
+
+    <!-- Unlock Screen -->
+    <div id="screen-unlock" class="screen" style="display:none">
+      <div class="screen-inner center-v">
+        <div class="brand-block">
+          <div class="brand-mark"></div>
+          <h1 class="wordmark">cykel</h1>
+        </div>
+        <div class="form-block">
+          <div class="input-wrap">
+            <input type="password" id="unlock-pass" placeholder="Enter passphrase" autocomplete="off" />
+          </div>
+          <button id="btn-unlock" class="btn-primary">
+            <span>Unlock</span>
+          </button>
+          <p id="unlock-error" class="error-text"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar Screen -->
+    <div id="screen-calendar" class="screen" style="display:none">
+      <div class="screen-inner">
+        <div class="top-bar">
+          <button id="btn-stats" class="top-btn" aria-label="Stats">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          </button>
+          <div class="top-bar-right">
+            <button id="btn-settings" class="top-btn" aria-label="Settings">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </button>
+            <button id="btn-lock" class="top-btn" aria-label="Lock">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="month-nav">
+          <button id="btn-prev-month" class="nav-arrow" aria-label="Previous month">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="month-label">
+            <h2 id="month-title"></h2>
+            <span id="month-year" class="month-year"></span>
+          </div>
+          <button id="btn-next-month" class="nav-arrow" aria-label="Next month">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <div class="cal-wrap">
+          <div id="calendar-grid" class="cal-grid">
+            <div class="cal-dow">S</div><div class="cal-dow">M</div><div class="cal-dow">T</div><div class="cal-dow">W</div><div class="cal-dow">T</div><div class="cal-dow">F</div><div class="cal-dow">S</div>
+          </div>
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display:none">
+          <p class="empty-title">Tap any day to start logging</p>
+          <p class="empty-sub">After 2 cycles, predictions will appear here</p>
+        </div>
+
+        <div id="prediction-card" class="prediction-card" style="display:none">
+          <div class="pred-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="pred-body">
+            <span class="pred-label">Next period</span>
+            <span id="prediction-text" class="pred-date"></span>
+          </div>
+        </div>
+
+        <div id="fertility-card" class="fertility-card" style="display:none">
+          <div class="pred-icon fert-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div class="pred-body">
+            <span class="pred-label">Fertile window</span>
+            <span id="fertility-text" class="pred-date"></span>
+          </div>
+        </div>
+
+        <div id="cycle-legend" class="cycle-legend" style="display:none">
+          <div class="legend-item"><span class="legend-dot dot-flow"></span>period</div>
+          <div class="legend-item"><span class="legend-dot dot-symptom"></span>symptoms</div>
+          <div class="legend-item" id="legend-predicted"><span class="legend-dot dot-predicted"></span>predicted</div>
+          <div class="legend-item" id="legend-fertile" style="display:none"><span class="legend-dot dot-fertile"></span>fertile</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day Log Screen -->
+    <div id="screen-daylog" class="screen" style="display:none">
+      <div class="screen-inner">
+        <div class="sheet-header">
+          <button id="btn-back" class="back-btn" aria-label="Back">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <h2 id="daylog-title" class="sheet-title"></h2>
+          <button id="btn-save-day" class="save-btn">Save</button>
+        </div>
+        <div class="daylog-body">
+          <div class="log-section">
+            <h3 class="section-label">Flow</h3>
+            <div class="flow-row" id="flow-buttons">
+              <button data-flow="None" class="flow-opt"><div class="flow-circle"></div><span>None</span></button>
+              <button data-flow="Light" class="flow-opt"><div class="flow-circle fc-light"></div><span>Light</span></button>
+              <button data-flow="Medium" class="flow-opt"><div class="flow-circle fc-medium"></div><span>Medium</span></button>
+              <button data-flow="Heavy" class="flow-opt"><div class="flow-circle fc-heavy"></div><span>Heavy</span></button>
+            </div>
+          </div>
+          <div class="log-section">
+            <h3 class="section-label">Symptoms</h3>
+            <div class="chip-grid" id="symptom-chips">
+              <button data-symptom="Cramps" class="chip">Cramps</button>
+              <button data-symptom="Headache" class="chip">Headache</button>
+              <button data-symptom="MoodLow" class="chip">Mood Low</button>
+              <button data-symptom="MoodHigh" class="chip">Mood High</button>
+              <button data-symptom="Fatigue" class="chip">Fatigue</button>
+              <button data-symptom="Bloating" class="chip">Bloating</button>
+              <button data-symptom="BreastTenderness" class="chip">Tenderness</button>
+              <button data-symptom="Acne" class="chip">Acne</button>
+            </div>
+          </div>
+          <div class="log-section">
+            <h3 class="section-label">Notes</h3>
+            <textarea id="daylog-notes" class="notes-input" placeholder="Anything you want to remember..." rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Screen -->
+    <div id="screen-stats" class="screen" style="display:none">
+      <div class="screen-inner">
+        <div class="sheet-header">
+          <button id="btn-stats-back" class="back-btn" aria-label="Back">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <h2 class="sheet-title">Your Cycle</h2>
+          <div style="width:48px"></div>
+        </div>
+        <div class="stats-body">
+          <div id="stats-empty" class="stats-empty" style="display:none"><p>Log at least 2 complete cycles to see your stats</p></div>
+          <div id="stats-content" style="display:none">
+            <div class="stat-grid">
+              <div class="stat-card"><span class="stat-value" id="stat-avg-cycle">--</span><span class="stat-label">avg cycle</span></div>
+              <div class="stat-card"><span class="stat-value" id="stat-avg-period">--</span><span class="stat-label">avg period</span></div>
+              <div class="stat-card"><span class="stat-value" id="stat-shortest">--</span><span class="stat-label">shortest</span></div>
+              <div class="stat-card"><span class="stat-value" id="stat-longest">--</span><span class="stat-label">longest</span></div>
+            </div>
+            <div class="stat-detail">
+              <div class="detail-row"><span class="detail-label">Total cycles tracked</span><span class="detail-value" id="stat-total">--</span></div>
+              <div class="detail-row"><span class="detail-label">Last period started</span><span class="detail-value" id="stat-last-start">--</span></div>
+              <div class="detail-row"><span class="detail-label">Last period ended</span><span class="detail-value" id="stat-last-end">--</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="screen-settings" class="screen" style="display:none">
+      <div class="screen-inner">
+        <div class="sheet-header">
+          <button id="btn-settings-back" class="back-btn" aria-label="Back">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <h2 class="sheet-title">Settings</h2>
+          <div style="width:48px"></div>
+        </div>
+        <div class="settings-body">
+          <div class="settings-group">
+            <div class="settings-row">
+              <div class="setting-info"><span class="setting-label">Fertility Window</span><span class="setting-desc">Show estimated fertile days on calendar</span></div>
+              <label class="toggle"><input type="checkbox" id="toggle-fertility" /><span class="toggle-track"></span></label>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-row">
+              <span class="setting-label">Auto-lock</span>
+              <div class="stepper">
+                <button id="autolock-down" class="stepper-btn">&minus;</button>
+                <span id="setting-autolock" class="stepper-val">5 min</span>
+                <button id="autolock-up" class="stepper-btn">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-row">
+              <div class="setting-info"><span class="setting-label">Export Data</span><span class="setting-desc">Download a plaintext JSON copy</span></div>
+              <button id="btn-export" class="action-btn">Export</button>
+            </div>
+          </div>
+          <div class="settings-group danger-zone">
+            <h3 class="group-label">Danger Zone</h3>
+            <button id="btn-wipe" class="btn-destructive">Erase All Data</button>
+            <p class="danger-hint">Permanently deletes everything. There is no undo.</p>
+          </div>
+          <div class="app-footer">
+            <span class="footer-logo">cykel</span>
+            <span class="footer-version">v0.1.0</span>
+            <span class="footer-badge">open source &middot; zero tracking &middot; on-device</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

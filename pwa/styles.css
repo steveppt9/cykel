@@ -1,0 +1,1127 @@
+/* ============================================
+   Cykel — Design System v2
+   Cash App meets warm, confident femininity
+   ============================================ */
+
+:root {
+  /* Core palette */
+  --bg: #FAF6F1;
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --text: #1A1714;
+  --text-secondary: #6B6560;
+  --text-tertiary: #A39E98;
+  --border: #EDE8E2;
+  --border-subtle: #F2EEEA;
+
+  /* Brand */
+  --accent: #C4654A;
+  --accent-hover: #B35840;
+  --accent-bg: rgba(196, 101, 74, 0.08);
+  --accent-bg-strong: rgba(196, 101, 74, 0.15);
+
+  /* Semantic */
+  --flow-light: #EACDC4;
+  --flow-light-text: #8B5A4A;
+  --flow-medium: #D4937E;
+  --flow-medium-text: #FFFFFF;
+  --flow-heavy: #C4654A;
+  --flow-heavy-text: #FFFFFF;
+  --symptom: #8BA889;
+  --symptom-bg: rgba(139, 168, 137, 0.12);
+  --symptom-bg-strong: rgba(139, 168, 137, 0.22);
+  --predicted: rgba(196, 101, 74, 0.18);
+  --fertile: #7B68C4;
+  --fertile-bg: rgba(123, 104, 196, 0.12);
+  --fertile-bg-strong: rgba(123, 104, 196, 0.22);
+  --fertile-peak: rgba(123, 104, 196, 0.30);
+  --danger: #D44A4A;
+  --danger-bg: rgba(212, 74, 74, 0.06);
+
+  /* Spacing scale */
+  --s-xs: 4px;
+  --s-sm: 8px;
+  --s-md: 12px;
+  --s-lg: 16px;
+  --s-xl: 24px;
+  --s-2xl: 32px;
+  --s-3xl: 48px;
+
+  /* Radius */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 24px;
+  --r-full: 9999px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration: 280ms;
+  --duration-fast: 160ms;
+}
+
+/* ============================================
+   Reset & Base
+   ============================================ */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+#app {
+  max-width: 430px;
+  margin: 0 auto;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea {
+  font-family: inherit;
+}
+
+/* ============================================
+   Screens & Transitions
+   ============================================ */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  animation: screenIn var(--duration) var(--ease) forwards;
+}
+
+@keyframes screenIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.screen-inner {
+  padding: var(--s-xl) var(--s-xl) var(--s-3xl);
+  min-height: 100%;
+}
+
+.center-v {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: var(--s-2xl);
+}
+
+/* ============================================
+   Brand / Setup / Unlock
+   ============================================ */
+
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-md);
+}
+
+.brand-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, var(--accent), #D4937E);
+  margin-bottom: var(--s-sm);
+  box-shadow: 0 8px 32px rgba(196, 101, 74, 0.25);
+}
+
+.wordmark {
+  font-size: 38px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  color: var(--text);
+  text-transform: lowercase;
+}
+
+.tagline {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  letter-spacing: 2px;
+  font-weight: 400;
+}
+
+.form-block {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+}
+
+.input-wrap input {
+  width: 100%;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.input-wrap input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.input-wrap input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 16px 24px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all var(--duration-fast) var(--ease);
+  margin-top: var(--s-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  transition: background var(--duration-fast);
+}
+
+.btn-primary:hover::after {
+  background: rgba(0,0,0,0.06);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-primary:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.error-text {
+  color: var(--danger);
+  font-size: 14px;
+  text-align: center;
+  min-height: 20px;
+  font-weight: 500;
+}
+
+.disclaimer {
+  max-width: 280px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+}
+
+/* ============================================
+   Top Bar (Calendar)
+   ============================================ */
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--s-lg);
+}
+
+.top-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-full);
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.top-btn:hover {
+  background: var(--border-subtle);
+}
+
+.top-btn:active {
+  transform: scale(0.9);
+}
+
+/* ============================================
+   Month Navigation
+   ============================================ */
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--s-xl);
+}
+
+.month-label {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.month-label h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  text-transform: capitalize;
+  color: var(--text);
+}
+
+.month-year {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.nav-arrow {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-full);
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.nav-arrow:hover {
+  background: var(--border-subtle);
+}
+
+.nav-arrow:active {
+  transform: scale(0.88);
+}
+
+/* ============================================
+   Calendar Grid
+   ============================================ */
+
+.cal-wrap {
+  padding: 0 var(--s-xs);
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.cal-dow {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  padding: var(--s-sm) 0 var(--s-md);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+  position: relative;
+}
+
+.cal-day:active {
+  transform: scale(0.88);
+}
+
+/* Today */
+.cal-day.is-today {
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.cal-day.is-today::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+}
+
+/* Empty / Other month */
+.cal-day.is-empty {
+  pointer-events: none;
+}
+
+/* Flow states */
+.cal-day.flow-light {
+  background: var(--flow-light);
+  color: var(--flow-light-text);
+}
+
+.cal-day.flow-medium {
+  background: var(--flow-medium);
+  color: var(--flow-medium-text);
+}
+
+.cal-day.flow-heavy {
+  background: var(--flow-heavy);
+  color: var(--flow-heavy-text);
+  font-weight: 700;
+}
+
+/* Symptoms indicator */
+.cal-day.has-symptoms::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--symptom);
+}
+
+/* Predicted */
+.cal-day.is-predicted {
+  background: var(--predicted);
+}
+
+.cal-day.is-predicted.flow-light,
+.cal-day.is-predicted.flow-medium,
+.cal-day.is-predicted.flow-heavy {
+  /* Flow takes priority over prediction bg */
+}
+
+/* ============================================
+   Prediction Card
+   ============================================ */
+
+.prediction-card {
+  margin-top: var(--s-xl);
+  padding: var(--s-lg) var(--s-xl);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--s-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.pred-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-full);
+  background: var(--accent-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.pred-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pred-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.pred-date {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ============================================
+   Cycle Summary (Legend)
+   ============================================ */
+
+.cycle-summary {
+  display: flex;
+  justify-content: center;
+  gap: var(--s-lg);
+  margin-top: var(--s-xl);
+  padding-top: var(--s-lg);
+}
+
+.summary-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-full);
+}
+
+.dot-flow { background: var(--accent); }
+.dot-symptom { background: var(--symptom); }
+.dot-predicted { background: var(--predicted); border: 1.5px solid var(--accent); box-sizing: border-box; }
+
+/* ============================================
+   Sheet Header (Day Log / Settings)
+   ============================================ */
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--s-xl);
+  gap: var(--s-md);
+}
+
+.back-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-full);
+  color: var(--text);
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.back-btn:active {
+  transform: scale(0.88);
+}
+
+.sheet-title {
+  font-size: 18px;
+  font-weight: 700;
+  flex: 1;
+  text-align: center;
+}
+
+.save-btn {
+  padding: 10px 20px;
+  background: var(--accent);
+  color: white;
+  border-radius: var(--r-full);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.save-btn:active {
+  transform: scale(0.94);
+}
+
+/* ============================================
+   Day Log Body
+   ============================================ */
+
+.daylog-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2xl);
+}
+
+.log-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-tertiary);
+  margin-bottom: var(--s-md);
+}
+
+/* Flow selection */
+.flow-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-sm);
+}
+
+.flow-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-sm);
+  padding: var(--s-lg) var(--s-sm);
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  transition: all var(--duration-fast) var(--ease);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.flow-opt:active {
+  transform: scale(0.94);
+}
+
+.flow-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-full);
+  border: 2px solid var(--border);
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.fc-light { border-color: var(--flow-light); background: var(--flow-light); }
+.fc-medium { border-color: var(--flow-medium); background: var(--flow-medium); }
+.fc-heavy { border-color: var(--flow-heavy); background: var(--flow-heavy); }
+
+.flow-opt.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.flow-opt.active .flow-circle {
+  box-shadow: 0 0 0 3px var(--accent-bg-strong);
+}
+
+.flow-opt.active span {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Symptom chips */
+.chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+}
+
+.chip {
+  padding: var(--s-sm) var(--s-lg);
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.chip:active {
+  transform: scale(0.94);
+}
+
+.chip.active {
+  border-color: var(--symptom);
+  background: var(--symptom-bg-strong);
+  color: #4A6B48;
+  font-weight: 600;
+}
+
+/* Notes */
+.notes-input {
+  width: 100%;
+  padding: var(--s-lg);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  transition: border-color var(--duration-fast) var(--ease);
+  line-height: 1.5;
+}
+
+.notes-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.notes-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* ============================================
+   Settings
+   ============================================ */
+
+.settings-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2xl);
+}
+
+.settings-group {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: var(--s-xl);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.setting-label {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+}
+
+.stepper-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-full);
+  background: var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.stepper-btn:active {
+  transform: scale(0.88);
+  background: var(--border);
+}
+
+.stepper-val {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 50px;
+  text-align: center;
+}
+
+.danger-zone {
+  background: var(--danger-bg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+}
+
+.group-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--danger);
+  margin-bottom: var(--s-xs);
+}
+
+.btn-destructive {
+  width: 100%;
+  padding: 14px;
+  background: var(--danger);
+  color: white;
+  border-radius: var(--r-md);
+  font-size: 15px;
+  font-weight: 600;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.btn-destructive:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+.danger-hint {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+.app-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-xs);
+  padding-top: var(--s-xl);
+}
+
+.footer-logo {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--text-tertiary);
+}
+
+.footer-version {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.footer-badge {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.5px;
+  margin-top: var(--s-xs);
+}
+
+/* ============================================
+   Scrollbar
+   ============================================ */
+
+.screen::-webkit-scrollbar {
+  width: 0;
+}
+
+/* ============================================
+   Safe areas (mobile)
+   ============================================ */
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  .screen-inner {
+    padding-top: calc(var(--s-xl) + env(safe-area-inset-top));
+    padding-bottom: calc(var(--s-3xl) + env(safe-area-inset-bottom));
+  }
+}
+
+/* ============================================
+   Fertility Calendar States
+   ============================================ */
+
+.cal-day.is-fertile {
+  background: var(--fertile-bg-strong);
+  color: var(--fertile);
+}
+
+.cal-day.is-peak {
+  background: var(--fertile-peak);
+  color: #5B48A4;
+  font-weight: 700;
+}
+
+.cal-day.is-ovulation {
+  background: var(--fertile);
+  color: white;
+  font-weight: 700;
+}
+
+/* Flow overrides fertility */
+.cal-day.flow-light.is-fertile,
+.cal-day.flow-medium.is-fertile,
+.cal-day.flow-heavy.is-fertile,
+.cal-day.flow-light.is-peak,
+.cal-day.flow-medium.is-peak,
+.cal-day.flow-heavy.is-peak {
+  /* flow colors take priority */
+}
+
+/* ============================================
+   Fertility Card
+   ============================================ */
+
+.fertility-card {
+  margin-top: var(--s-md);
+  padding: var(--s-lg) var(--s-xl);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--s-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.fert-icon {
+  background: var(--fertile-bg);
+  color: var(--fertile);
+}
+
+/* ============================================
+   Legend
+   ============================================ */
+
+.cycle-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--s-lg);
+  margin-top: var(--s-xl);
+  padding-top: var(--s-lg);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-full);
+}
+
+.dot-flow { background: var(--accent); }
+.dot-symptom { background: var(--symptom); }
+.dot-predicted { background: var(--predicted); border: 1.5px solid var(--accent); box-sizing: border-box; }
+.dot-fertile { background: var(--fertile); }
+
+/* ============================================
+   Empty State
+   ============================================ */
+
+.empty-state {
+  text-align: center;
+  padding: var(--s-2xl) var(--s-xl);
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--s-sm);
+}
+
+.empty-sub {
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+/* ============================================
+   Stats Screen
+   ============================================ */
+
+.stats-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-xl);
+}
+
+.stats-empty {
+  text-align: center;
+  padding: var(--s-3xl) var(--s-xl);
+  color: var(--text-tertiary);
+  font-size: 15px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-md);
+}
+
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: var(--s-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-xs);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.stat-detail {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--s-lg) var(--s-xl);
+}
+
+.detail-row + .detail-row {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.detail-label {
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.detail-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ============================================
+   Toggle Switch
+   ============================================ */
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-track {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--border);
+  border-radius: var(--r-full);
+  transition: all var(--duration) var(--ease);
+}
+
+.toggle-track::before {
+  content: '';
+  position: absolute;
+  height: 26px;
+  width: 26px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: var(--r-full);
+  transition: all var(--duration) var(--ease);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.toggle input:checked + .toggle-track {
+  background: var(--fertile);
+}
+
+.toggle input:checked + .toggle-track::before {
+  transform: translateX(20px);
+}
+
+/* ============================================
+   Settings extras
+   ============================================ */
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setting-desc {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.settings-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: var(--s-lg) 0;
+}
+
+.action-btn {
+  padding: 8px 18px;
+  background: var(--border-subtle);
+  border-radius: var(--r-full);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.action-btn:active {
+  transform: scale(0.94);
+  background: var(--border);
+}
+
+/* ============================================
+   Top bar layout
+   ============================================ */
+
+.top-bar-right {
+  display: flex;
+  gap: var(--s-xs);
+}
