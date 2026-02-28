@@ -1,0 +1,22 @@
+{
+  "name": "Cykel",
+  "short_name": "Cykel",
+  "description": "Privacy-first cycle tracker. On-device. Encrypted. Open source.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF6F1",
+  "theme_color": "#C4654A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
