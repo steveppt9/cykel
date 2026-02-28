@@ -41,17 +41,21 @@ function shouldShowInstall() {
 }
 
 function showInstallPrompt() {
+  // Ensure all install variants are hidden first
+  document.getElementById('install-ios').classList.add('hidden');
+  document.getElementById('install-android').classList.add('hidden');
+  document.getElementById('install-desktop').classList.add('hidden');
+
   showScreen('install');
 
   if (isIOS()) {
-    document.getElementById('install-ios').style.display = 'block';
+    document.getElementById('install-ios').classList.remove('hidden');
   } else if (deferredInstallPrompt || isAndroid()) {
-    document.getElementById('install-android').style.display = 'block';
+    document.getElementById('install-android').classList.remove('hidden');
   } else if (!isMobile()) {
-    document.getElementById('install-desktop').style.display = 'block';
+    document.getElementById('install-desktop').classList.remove('hidden');
   } else {
-    // Fallback for mobile browsers without beforeinstallprompt
-    document.getElementById('install-android').style.display = 'block';
+    document.getElementById('install-android').classList.remove('hidden');
   }
 }
 
@@ -138,13 +142,11 @@ async function saveData() {
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => {
-    s.style.display = 'none';
-    s.style.animation = 'none';
+    s.classList.add('hidden');
   });
   const screen = document.getElementById(`screen-${id}`);
-  screen.style.display = 'block';
-  screen.offsetHeight;
-  screen.style.animation = '';
+  screen.classList.remove('hidden');
+  screen.offsetHeight; // force reflow for animation
 }
 
 // ============================================
@@ -344,7 +346,7 @@ function enterApp() {
   showFertility = appData.settings.show_fertility || false;
   document.getElementById('setting-autolock').textContent = `${autoLockMinutes} min`;
   document.getElementById('toggle-fertility').checked = showFertility;
-  document.getElementById('legend-fertile').style.display = showFertility ? 'flex' : 'none';
+  document.getElementById('legend-fertile').classList.toggle('hidden', !showFertility);
 
   showScreen('calendar');
   renderCalendar();
@@ -461,21 +463,21 @@ function renderCalendar() {
 
   // UI state
   const hasData = appData.day_logs.length > 0 || pred != null;
-  emptyState.style.display = hasData ? 'none' : 'block';
-  cycleLegend.style.display = hasData ? 'flex' : 'none';
+  emptyState.classList.toggle('hidden', hasData);
+  cycleLegend.classList.toggle('hidden', !hasData);
 
   if (pred) {
-    predictionCard.style.display = 'flex';
+    predictionCard.classList.remove('hidden');
     predictionText.textContent = fmtDatePretty(pred.predicted_start);
   } else {
-    predictionCard.style.display = 'none';
+    predictionCard.classList.add('hidden');
   }
 
   if (fw) {
-    fertilityCard.style.display = 'flex';
+    fertilityCard.classList.remove('hidden');
     fertilityText.textContent = `${fmtDateShort(fw.fertile_start)} - ${fmtDateShort(fw.fertile_end)}`;
   } else {
-    fertilityCard.style.display = 'none';
+    fertilityCard.classList.add('hidden');
   }
 
   // Build grid
@@ -618,8 +620,8 @@ document.getElementById('btn-stats').addEventListener('click', () => {
   const stats = cycleStats(appData.cycles);
   const hasStats = stats.total_cycles >= 2 && stats.avg_cycle_length != null;
 
-  document.getElementById('stats-empty').style.display = hasStats ? 'none' : 'block';
-  document.getElementById('stats-content').style.display = hasStats ? 'block' : 'none';
+  document.getElementById('stats-empty').classList.toggle('hidden', hasStats);
+  document.getElementById('stats-content').classList.toggle('hidden', !hasStats);
 
   if (hasStats) {
     document.getElementById('stat-avg-cycle').textContent = `${Math.round(stats.avg_cycle_length)}d`;
@@ -645,7 +647,7 @@ document.getElementById('btn-lock').addEventListener('click', doLock);
 // Fertility toggle
 document.getElementById('toggle-fertility').addEventListener('change', async (e) => {
   showFertility = e.target.checked;
-  document.getElementById('legend-fertile').style.display = showFertility ? 'flex' : 'none';
+  document.getElementById('legend-fertile').classList.toggle('hidden', !showFertility);
   if (appData) {
     appData.settings.show_fertility = showFertility;
     await saveData();

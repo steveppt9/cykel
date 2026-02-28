@@ -122,6 +122,14 @@ input, textarea {
   animation: screenIn var(--duration) var(--ease) forwards;
 }
 
+.hidden {
+  display: none !important;
+}
+
+.header-spacer {
+  width: 48px;
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-8px); }
