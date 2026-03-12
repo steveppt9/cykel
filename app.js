@@ -97,6 +97,14 @@ let selectedDate = null;
 let autoLockTimer = null;
 let autoLockMinutes = 5;
 let showFertility = false;
+let appMode = 'tracking'; // 'tracking', 'ttc', 'pregnancy'
+let selectedMoods = new Set();
+let selectedDischarge = null;
+let selectedSex = null;
+let selectedSexDrive = null;
+let selectedEnergy = null;
+let selectedSleep = null;
+let selectedExercise = null;
 
 function defaultAppData() {
   return {
@@ -626,10 +634,84 @@ function enterApp() {
     }
   });
 
+  appMode = appData.settings.mode || 'tracking';
+  updateModeSelector();
+
   showScreen('calendar');
   renderCalendar();
   checkAlerts();
   resetAutoLock();
+}
+
+// ============================================
+// Mode selector
+// ============================================
+
+function updateModeSelector() {
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === appMode);
+  });
+}
+
+document.getElementById('mode-selector').addEventListener('click', async (e) => {
+  const btn = e.target.closest('.mode-btn');
+  if (!btn) return;
+
+  const newMode = btn.dataset.mode;
+
+  if (newMode === 'pregnancy' && !appData.settings.due_date) {
+    promptDueDate();
+    return;
+  }
+
+  appMode = newMode;
+  appData.settings.mode = appMode;
+
+  // Auto-enable fertility window in TTC mode
+  if (appMode === 'ttc') {
+    showFertility = true;
+    appData.settings.show_fertility = true;
+    document.getElementById('toggle-fertility').checked = true;
+    document.getElementById('legend-fertile').classList.remove('hidden');
+  }
+
+  await saveData();
+  updateModeSelector();
+  showScreen('calendar');
+  renderCalendar();
+});
+
+function promptDueDate() {
+  const lastCycle = appData.cycles.filter(c => c.end_date).sort((a, b) => b.start_date.localeCompare(a.start_date))[0];
+
+  if (lastCycle) {
+    const lmpDate = new Date(lastCycle.start_date + 'T00:00:00');
+    const dueDate = new Date(lmpDate);
+    dueDate.setDate(dueDate.getDate() + 280);
+    const dueDateStr = fmtDate(dueDate);
+
+    showModal(
+      'Start Pregnancy Mode?',
+      `Based on your last period (${fmtDatePretty(lastCycle.start_date)}), your estimated due date is ${fmtDatePretty(dueDateStr)}. You can change this in settings later.`,
+      'Start',
+      async () => {
+        appData.settings.due_date = dueDateStr;
+        appData.settings.mode = 'pregnancy';
+        appMode = 'pregnancy';
+        await saveData();
+        updateModeSelector();
+        showScreen('calendar');
+        renderCalendar();
+      }
+    );
+  } else {
+    showModal(
+      'No cycle data',
+      'Log at least one complete cycle before switching to pregnancy mode, so we can calculate your due date.',
+      'OK',
+      () => {}
+    );
+  }
 }
 
 // ============================================
@@ -853,6 +935,67 @@ function renderCalendar() {
     fertilityCard.classList.add('hidden');
   }
 
+  // Mode-specific cards
+  const pregnancyCard = document.getElementById('pregnancy-card');
+  const ttcCard = document.getElementById('ttc-card');
+
+  pregnancyCard.classList.add('hidden');
+  ttcCard.classList.add('hidden');
+
+  if (appMode === 'pregnancy' && appData.settings.due_date) {
+    const dueDate = appData.settings.due_date;
+    const today = fmtDate(new Date());
+    const lmpDate = new Date(dueDate + 'T00:00:00');
+    lmpDate.setDate(lmpDate.getDate() - 280);
+    const daysPregnant = daysBetweenDates(fmtDate(lmpDate), today);
+    const weeksPregnant = Math.floor(daysPregnant / 7);
+    const daysExtra = daysPregnant % 7;
+
+    if (weeksPregnant >= 0 && weeksPregnant <= 42) {
+      document.getElementById('preg-week-num').textContent = weeksPregnant;
+
+      const trimester = weeksPregnant < 13 ? '1st trimester' : weeksPregnant < 27 ? '2nd trimester' : '3rd trimester';
+      document.getElementById('preg-status').textContent = `${trimester} · ${weeksPregnant}w ${daysExtra}d`;
+      document.getElementById('preg-due').textContent = `Due ${fmtDatePretty(dueDate)}`;
+      pregnancyCard.classList.remove('hidden');
+    }
+
+    // Hide period-specific cards in pregnancy mode
+    predictionCard.classList.add('hidden');
+    fertilityCard.classList.add('hidden');
+    emptyState.classList.add('hidden');
+  }
+
+  if (appMode === 'ttc') {
+    const ttcTipText = document.getElementById('ttc-tip-text');
+
+    if (fw) {
+      const today = fmtDate(new Date());
+      const daysToFertile = daysBetweenDates(today, fw.fertile_start);
+      const daysToOvulation = daysBetweenDates(today, fw.ovulation_day);
+
+      if (daysToOvulation === 0) {
+        ttcTipText.textContent = 'Ovulation day — best chance of conception';
+      } else if (today >= fw.peak_start && today <= fw.peak_end) {
+        ttcTipText.textContent = 'Peak fertility — have sex today and tomorrow';
+      } else if (today >= fw.fertile_start && today <= fw.fertile_end) {
+        ttcTipText.textContent = 'Fertile — have sex every 1-2 days';
+      } else if (daysToFertile > 0 && daysToFertile <= 5) {
+        ttcTipText.textContent = `Fertile window in ${daysToFertile} days — stay healthy and hydrated`;
+      } else {
+        ttcTipText.textContent = 'Keep logging to improve predictions';
+      }
+      ttcCard.classList.remove('hidden');
+    }
+
+    // Auto-enable fertility in TTC mode
+    if (!showFertility) {
+      showFertility = true;
+      document.getElementById('toggle-fertility').checked = true;
+      document.getElementById('legend-fertile').classList.remove('hidden');
+    }
+  }
+
   const firstDay = new Date(currentYear, currentMonth - 1, 1);
   const lastDay = new Date(currentYear, currentMonth, 0);
   const startDow = firstDay.getDay();
@@ -917,10 +1060,28 @@ function openDayLog(dateStr, existingLog, existingSymptoms) {
   selectedFlow = existingLog ? existingLog.flow_level : 'None';
   selectedSymptoms = new Set();
   if (existingSymptoms) existingSymptoms.forEach(s => selectedSymptoms.add(s.symptom_type));
-  daylogNotes.value = existingLog ? existingLog.notes : '';
+
+  // New fields
+  selectedMoods = new Set(existingLog?.moods || []);
+  selectedDischarge = existingLog?.discharge || null;
+  selectedSex = existingLog?.sex || null;
+  selectedSexDrive = existingLog?.sex_drive || null;
+  selectedEnergy = existingLog?.energy || null;
+  selectedSleep = existingLog?.sleep || null;
+  selectedExercise = existingLog?.exercise || null;
+  daylogNotes.value = existingLog ? (existingLog.notes || '') : '';
 
   updateFlowButtons();
+  updateMoodChips();
   updateSymptomChips();
+
+  updateSelectRow('discharge-buttons', selectedDischarge);
+  updateSelectRow('sex-buttons', selectedSex);
+  updateSexDriveVisibility();
+  updatePillRow('drive-buttons', selectedSexDrive);
+  updatePillRow('energy-buttons', selectedEnergy);
+  updatePillRow('sleep-buttons', selectedSleep);
+  updatePillRow('exercise-buttons', selectedExercise);
   showScreen('daylog');
 }
 
@@ -930,10 +1091,33 @@ function updateFlowButtons() {
   });
 }
 
+function updateMoodChips() {
+  document.querySelectorAll('#mood-chips .chip').forEach(chip => {
+    chip.classList.toggle('active', selectedMoods.has(chip.dataset.mood));
+  });
+}
+
 function updateSymptomChips() {
-  document.querySelectorAll('.chip').forEach(chip => {
+  document.querySelectorAll('#symptom-chips .chip').forEach(chip => {
     chip.classList.toggle('active', selectedSymptoms.has(chip.dataset.symptom));
   });
+}
+
+function updateSelectRow(id, value) {
+  document.querySelectorAll(`#${id} .select-opt`).forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.val === value);
+  });
+}
+
+function updatePillRow(id, value) {
+  document.querySelectorAll(`#${id} .pill-btn`).forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.val === value);
+  });
+}
+
+function updateSexDriveVisibility() {
+  const driveRow = document.getElementById('sex-drive-row');
+  driveRow.classList.toggle('hidden', !selectedSex || selectedSex === 'None');
 }
 
 document.getElementById('flow-buttons').addEventListener('click', e => {
@@ -941,6 +1125,16 @@ document.getElementById('flow-buttons').addEventListener('click', e => {
   if (!btn) return;
   selectedFlow = btn.dataset.flow;
   updateFlowButtons();
+});
+
+// Mood chips (multi-select)
+document.getElementById('mood-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  const mood = chip.dataset.mood;
+  if (selectedMoods.has(mood)) selectedMoods.delete(mood);
+  else selectedMoods.add(mood);
+  updateMoodChips();
 });
 
 document.getElementById('symptom-chips').addEventListener('click', e => {
@@ -952,15 +1146,78 @@ document.getElementById('symptom-chips').addEventListener('click', e => {
   updateSymptomChips();
 });
 
+// Discharge (single-select)
+document.getElementById('discharge-buttons').addEventListener('click', e => {
+  const btn = e.target.closest('.select-opt');
+  if (!btn) return;
+  selectedDischarge = btn.dataset.val === selectedDischarge ? null : btn.dataset.val;
+  updateSelectRow('discharge-buttons', selectedDischarge);
+});
+
+// Sex (single-select)
+document.getElementById('sex-buttons').addEventListener('click', e => {
+  const btn = e.target.closest('.select-opt');
+  if (!btn) return;
+  selectedSex = btn.dataset.val === selectedSex ? null : btn.dataset.val;
+  if (!selectedSex || selectedSex === 'None') selectedSexDrive = null;
+  updateSelectRow('sex-buttons', selectedSex);
+  updateSexDriveVisibility();
+  updatePillRow('drive-buttons', selectedSexDrive);
+});
+
+// Sex drive (single-select)
+document.getElementById('drive-buttons').addEventListener('click', e => {
+  const btn = e.target.closest('.pill-btn');
+  if (!btn) return;
+  selectedSexDrive = btn.dataset.val === selectedSexDrive ? null : btn.dataset.val;
+  updatePillRow('drive-buttons', selectedSexDrive);
+});
+
+// Energy (single-select)
+document.getElementById('energy-buttons').addEventListener('click', e => {
+  const btn = e.target.closest('.pill-btn');
+  if (!btn) return;
+  selectedEnergy = btn.dataset.val === selectedEnergy ? null : btn.dataset.val;
+  updatePillRow('energy-buttons', selectedEnergy);
+});
+
+// Sleep (single-select)
+document.getElementById('sleep-buttons').addEventListener('click', e => {
+  const btn = e.target.closest('.pill-btn');
+  if (!btn) return;
+  selectedSleep = btn.dataset.val === selectedSleep ? null : btn.dataset.val;
+  updatePillRow('sleep-buttons', selectedSleep);
+});
+
+// Exercise (single-select)
+document.getElementById('exercise-buttons').addEventListener('click', e => {
+  const btn = e.target.closest('.pill-btn');
+  if (!btn) return;
+  selectedExercise = btn.dataset.val === selectedExercise ? null : btn.dataset.val;
+  updatePillRow('exercise-buttons', selectedExercise);
+});
+
 document.getElementById('btn-save-day').addEventListener('click', async () => {
   if (!selectedDate || !appData) return;
 
-  const existing = appData.day_logs.find(l => l.date === selectedDate);
-  if (existing) {
-    existing.flow_level = selectedFlow;
-    existing.notes = daylogNotes.value;
+  const logData = {
+    date: selectedDate,
+    flow_level: selectedFlow,
+    moods: [...selectedMoods],
+    discharge: selectedDischarge,
+    sex: selectedSex,
+    sex_drive: selectedSexDrive,
+    energy: selectedEnergy,
+    sleep: selectedSleep,
+    exercise: selectedExercise,
+    notes: daylogNotes.value,
+  };
+
+  const idx = appData.day_logs.findIndex(l => l.date === selectedDate);
+  if (idx >= 0) {
+    appData.day_logs[idx] = logData;
   } else {
-    appData.day_logs.push({ date: selectedDate, flow_level: selectedFlow, notes: daylogNotes.value });
+    appData.day_logs.push(logData);
   }
 
   appData.symptoms = appData.symptoms.filter(s => s.date !== selectedDate);
@@ -990,15 +1247,263 @@ document.getElementById('btn-stats').addEventListener('click', () => {
   document.getElementById('stats-empty').classList.toggle('hidden', hasStats);
   document.getElementById('stats-content').classList.toggle('hidden', !hasStats);
 
-  if (hasStats) {
-    document.getElementById('stat-avg-cycle').textContent = `${Math.round(stats.avg_cycle_length)}d`;
-    document.getElementById('stat-avg-period').textContent = `${Math.round(stats.avg_period_length)}d`;
-    document.getElementById('stat-shortest').textContent = stats.shortest_cycle != null ? `${stats.shortest_cycle}d` : '--';
-    document.getElementById('stat-longest').textContent = stats.longest_cycle != null ? `${stats.longest_cycle}d` : '--';
-    document.getElementById('stat-total').textContent = stats.total_cycles;
-    document.getElementById('stat-last-start').textContent = stats.last_period_start ? fmtDatePretty(stats.last_period_start) : '--';
-    document.getElementById('stat-last-end').textContent = stats.last_period_end ? fmtDatePretty(stats.last_period_end) : '--';
+  if (!hasStats) return;
+
+  // Basic stats
+  document.getElementById('stat-avg-cycle').textContent = `${Math.round(stats.avg_cycle_length)}d`;
+  document.getElementById('stat-avg-period').textContent = `${Math.round(stats.avg_period_length)}d`;
+  document.getElementById('stat-shortest').textContent = stats.shortest_cycle != null ? `${stats.shortest_cycle}d` : '--';
+  document.getElementById('stat-longest').textContent = stats.longest_cycle != null ? `${stats.longest_cycle}d` : '--';
+  document.getElementById('stat-total').textContent = stats.total_cycles;
+  document.getElementById('stat-last-start').textContent = stats.last_period_start ? fmtDatePretty(stats.last_period_start) : '--';
+  document.getElementById('stat-last-end').textContent = stats.last_period_end ? fmtDatePretty(stats.last_period_end) : '--';
+
+  // Cycle length chart
+  renderCycleChart();
+
+  // Symptom patterns
+  renderSymptomSummary();
+
+  // Mood patterns
+  renderMoodSummary();
+});
+
+function renderCycleChart() {
+  const container = document.getElementById('chart-bars');
+  container.innerHTML = '';
+
+  const completed = appData.cycles
+    .filter(c => c.end_date != null)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+
+  if (completed.length < 2) {
+    document.getElementById('cycle-chart').classList.add('hidden');
+    return;
   }
+
+  document.getElementById('cycle-chart').classList.remove('hidden');
+
+  const recent = completed.slice(-7); // need 7 cycles to get 6 lengths
+  const lengths = [];
+  for (let i = 1; i < recent.length; i++) {
+    const len = daysBetweenDates(recent[i - 1].start_date, recent[i].start_date);
+    const month = new Date(recent[i].start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' });
+    lengths.push({ len, month });
+  }
+
+  const maxLen = Math.max(...lengths.map(l => l.len));
+
+  lengths.forEach(({ len, month }) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'chart-bar-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'chart-bar';
+    bar.style.height = `${(len / maxLen) * 100}%`;
+    const label = document.createElement('span');
+    label.className = 'chart-bar-label';
+    label.textContent = `${len}`;
+    const sub = document.createElement('span');
+    sub.className = 'chart-bar-sub';
+    sub.textContent = month;
+    wrap.appendChild(bar);
+    wrap.appendChild(label);
+    wrap.appendChild(sub);
+    container.appendChild(wrap);
+  });
+}
+
+const SYMPTOM_NAME_MAP = {
+  Cramps: 'Cramps', Headache: 'Headache', Backache: 'Backache',
+  Bloating: 'Bloating', BreastTenderness: 'Tenderness', Nausea: 'Nausea',
+  Fatigue: 'Fatigue', Acne: 'Acne', HotFlashes: 'Hot Flashes',
+  Dizziness: 'Dizziness', JointPain: 'Joint Pain', Insomnia: 'Insomnia',
+  MoodLow: 'Mood Low', MoodHigh: 'Mood High'
+};
+
+function renderSymptomSummary() {
+  const container = document.getElementById('symptom-bars');
+  container.innerHTML = '';
+
+  const counts = {};
+  appData.symptoms.forEach(s => {
+    counts[s.symptom_type] = (counts[s.symptom_type] || 0) + 1;
+  });
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  if (!sorted.length) {
+    document.getElementById('symptom-summary').classList.add('hidden');
+    return;
+  }
+  document.getElementById('symptom-summary').classList.remove('hidden');
+
+  const maxCount = sorted[0][1];
+  sorted.forEach(([type, count]) => {
+    const row = document.createElement('div');
+    row.className = 'pattern-row';
+
+    const labelEl = document.createElement('span');
+    labelEl.className = 'pattern-label';
+    labelEl.textContent = SYMPTOM_NAME_MAP[type] || type;
+
+    const track = document.createElement('div');
+    track.className = 'pattern-track';
+    const fill = document.createElement('div');
+    fill.className = 'pattern-fill';
+    fill.style.width = `${(count / maxCount) * 100}%`;
+    track.appendChild(fill);
+
+    const countEl = document.createElement('span');
+    countEl.className = 'pattern-count';
+    countEl.textContent = count;
+
+    row.appendChild(labelEl);
+    row.appendChild(track);
+    row.appendChild(countEl);
+    container.appendChild(row);
+  });
+}
+
+function renderMoodSummary() {
+  const container = document.getElementById('mood-bars');
+  container.innerHTML = '';
+
+  const counts = {};
+  appData.day_logs.forEach(log => {
+    if (log.moods) {
+      log.moods.forEach(m => {
+        counts[m] = (counts[m] || 0) + 1;
+      });
+    }
+  });
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  if (!sorted.length) {
+    document.getElementById('mood-summary').classList.add('hidden');
+    return;
+  }
+  document.getElementById('mood-summary').classList.remove('hidden');
+
+  const maxCount = sorted[0][1];
+  sorted.forEach(([mood, count]) => {
+    const row = document.createElement('div');
+    row.className = 'pattern-row';
+
+    const labelEl = document.createElement('span');
+    labelEl.className = 'pattern-label';
+    labelEl.textContent = mood;
+
+    const track = document.createElement('div');
+    track.className = 'pattern-track';
+    const fill = document.createElement('div');
+    fill.className = 'pattern-fill mood-fill';
+    fill.style.width = `${(count / maxCount) * 100}%`;
+    track.appendChild(fill);
+
+    const countEl = document.createElement('span');
+    countEl.className = 'pattern-count';
+    countEl.textContent = count;
+
+    row.appendChild(labelEl);
+    row.appendChild(track);
+    row.appendChild(countEl);
+    container.appendChild(row);
+  });
+}
+
+document.getElementById('btn-doctor-report').addEventListener('click', () => {
+  if (!appData) return;
+
+  const stats = cycleStats(appData.cycles);
+  const completed = appData.cycles
+    .filter(c => c.end_date != null)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+
+  // Symptom counts
+  const symptomCounts = {};
+  appData.symptoms.forEach(s => {
+    symptomCounts[s.symptom_type] = (symptomCounts[s.symptom_type] || 0) + 1;
+  });
+  const topSymptoms = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+  // Mood counts
+  const moodCounts = {};
+  appData.day_logs.forEach(log => {
+    if (log.moods) log.moods.forEach(m => { moodCounts[m] = (moodCounts[m] || 0) + 1; });
+  });
+  const topMoods = Object.entries(moodCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+  // 6-month date range
+  const now = new Date();
+  const sixMonthsAgo = new Date(now);
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const reportNameMap = { BreastTenderness: 'Breast Tenderness', MoodLow: 'Mood Low', MoodHigh: 'Mood High', HotFlashes: 'Hot Flashes', JointPain: 'Joint Pain' };
+
+  // Build cycle history rows
+  let cycleRows = '';
+  for (let i = 1; i < completed.length; i++) {
+    const len = daysBetweenDates(completed[i - 1].start_date, completed[i].start_date);
+    const periodLen = daysBetweenDates(completed[i - 1].start_date, completed[i - 1].end_date) + 1;
+    cycleRows += '<tr><td>' + completed[i - 1].start_date + '</td><td>' + completed[i - 1].end_date + '</td><td>' + periodLen + 'd</td><td>' + len + 'd</td></tr>';
+  }
+  // Add last cycle
+  if (completed.length) {
+    const last = completed[completed.length - 1];
+    const periodLen = daysBetweenDates(last.start_date, last.end_date) + 1;
+    cycleRows += '<tr><td>' + last.start_date + '</td><td>' + last.end_date + '</td><td>' + periodLen + 'd</td><td>--</td></tr>';
+  }
+
+  const symptomTags = topSymptoms.length
+    ? '<div class="tag-list">' + topSymptoms.map(([s, c]) => '<span class="tag">' + (reportNameMap[s] || s) + ' (' + c + ')</span>').join('') + '</div>'
+    : '<p>No symptoms logged yet.</p>';
+
+  const moodTags = topMoods.length
+    ? '<div class="tag-list">' + topMoods.map(([m, c]) => '<span class="tag">' + m + ' (' + c + ')</span>').join('') + '</div>'
+    : '<p>No moods logged yet.</p>';
+
+  const avgCycle = stats.avg_cycle_length ? Math.round(stats.avg_cycle_length) + 'd' : '--';
+  const avgPeriod = stats.avg_period_length ? Math.round(stats.avg_period_length) + 'd' : '--';
+  const shortest = stats.shortest_cycle != null ? stats.shortest_cycle + 'd' : '--';
+  const longest = stats.longest_cycle != null ? stats.longest_cycle + 'd' : '--';
+
+  const win = window.open('', '_blank');
+  win.document.write('<!DOCTYPE html><html><head><title>Cykel - Cycle Report</title>' +
+    '<style>' +
+    'body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 40px auto; color: #1A1714; padding: 0 20px; }' +
+    'h1 { font-size: 28px; margin-bottom: 4px; }' +
+    '.subtitle { color: #6B6560; font-size: 14px; margin-bottom: 32px; }' +
+    'h2 { font-size: 18px; margin: 24px 0 12px; border-bottom: 1px solid #EDE8E2; padding-bottom: 8px; }' +
+    '.stat-row { display: flex; gap: 24px; margin-bottom: 8px; }' +
+    '.stat-item { font-size: 14px; }' +
+    '.stat-item strong { font-size: 20px; display: block; }' +
+    'table { width: 100%; border-collapse: collapse; font-size: 14px; }' +
+    'th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #EDE8E2; }' +
+    'th { font-weight: 600; color: #6B6560; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }' +
+    '.tag-list { display: flex; flex-wrap: wrap; gap: 8px; }' +
+    '.tag { padding: 4px 12px; border-radius: 20px; font-size: 13px; background: #F2EEEA; }' +
+    '.footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #EDE8E2; font-size: 12px; color: #A39E98; }' +
+    '@media print { body { margin: 20px; } }' +
+    '</style></head><body>' +
+    '<h1>Cykel \u2014 Cycle Report</h1>' +
+    '<p class="subtitle">' + sixMonthsAgo.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + ' \u2013 ' + now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + '</p>' +
+    '<h2>Summary</h2>' +
+    '<div class="stat-row">' +
+    '<div class="stat-item"><strong>' + avgCycle + '</strong>Avg cycle</div>' +
+    '<div class="stat-item"><strong>' + avgPeriod + '</strong>Avg period</div>' +
+    '<div class="stat-item"><strong>' + shortest + '</strong>Shortest</div>' +
+    '<div class="stat-item"><strong>' + longest + '</strong>Longest</div>' +
+    '<div class="stat-item"><strong>' + stats.total_cycles + '</strong>Total cycles</div>' +
+    '</div>' +
+    '<h2>Cycle History</h2>' +
+    '<table><thead><tr><th>Start</th><th>End</th><th>Period</th><th>Cycle</th></tr></thead><tbody>' + cycleRows + '</tbody></table>' +
+    '<h2>Common Symptoms</h2>' + symptomTags +
+    '<h2>Common Moods</h2>' + moodTags +
+    '<p class="footer">Generated by Cykel \u00b7 ' + now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' \u00b7 Private & encrypted on-device tracker</p>' +
+    '</body></html>');
+  win.document.close();
+  setTimeout(() => win.print(), 500);
 });
 
 document.getElementById('btn-stats-back').addEventListener('click', () => showScreen('calendar'));

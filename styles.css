@@ -37,6 +37,8 @@
   --fertile-bg: rgba(123, 104, 196, 0.12);
   --fertile-bg-strong: rgba(123, 104, 196, 0.22);
   --fertile-peak: rgba(123, 104, 196, 0.30);
+  --mood: #7B8EC4;
+  --mood-bg: rgba(123, 142, 196, 0.15);
   --danger: #D44A4A;
   --danger-bg: rgba(212, 74, 74, 0.06);
 
@@ -1114,6 +1116,12 @@ input, textarea {
   font-size: 15px;
 }
 
+#stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-xl);
+}
+
 .stat-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1597,4 +1605,348 @@ input, textarea {
   background: var(--surface);
   border-radius: var(--r-lg);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ============================================
+   Mood Chips
+   ============================================ */
+
+#mood-chips .chip.active {
+  border-color: var(--mood);
+  background: var(--mood-bg);
+  color: #4A5A8B;
+  font-weight: 600;
+}
+
+/* ============================================
+   Select Row (discharge, sex)
+   ============================================ */
+
+.select-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-sm);
+}
+
+.select-row.cols-6 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.select-opt {
+  padding: var(--s-sm) var(--s-xs);
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.select-opt:active { transform: scale(0.94); }
+
+.select-opt.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ============================================
+   Sub-row (sex drive)
+   ============================================ */
+
+.sub-row {
+  margin-top: var(--s-md);
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+}
+
+.sub-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  min-width: 40px;
+}
+
+/* ============================================
+   Pill Buttons (drive, lifestyle)
+   ============================================ */
+
+.pill-row {
+  display: flex;
+  gap: var(--s-sm);
+  flex: 1;
+}
+
+.pill-btn {
+  flex: 1;
+  padding: var(--s-sm) var(--s-xs);
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.pill-btn:active { transform: scale(0.94); }
+
+.pill-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ============================================
+   Lifestyle Grid
+   ============================================ */
+
+.lifestyle-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+}
+
+.lifestyle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+}
+
+.lifestyle-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 60px;
+}
+
+/* ============================================
+   Cycle Length Bar Chart
+   ============================================ */
+
+.cycle-chart {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: var(--s-xl);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-sm);
+  height: 120px;
+  padding-top: var(--s-lg);
+}
+
+.chart-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-xs);
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-bar {
+  width: 100%;
+  max-width: 40px;
+  background: var(--accent-bg-strong);
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  min-height: 4px;
+  transition: height var(--duration) var(--ease);
+}
+
+.chart-bar-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.chart-bar-sub {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* ============================================
+   Pattern Summary (Symptoms, Moods)
+   ============================================ */
+
+.pattern-summary {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: var(--s-xl);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.pattern-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+  padding-top: var(--s-md);
+}
+
+.pattern-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+}
+
+.pattern-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  min-width: 90px;
+}
+
+.pattern-track {
+  flex: 1;
+  height: 8px;
+  background: var(--border-subtle);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+
+.pattern-fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  background: var(--symptom);
+  transition: width var(--duration) var(--ease);
+}
+
+.pattern-fill.mood-fill {
+  background: var(--mood);
+}
+
+.pattern-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  min-width: 24px;
+  text-align: right;
+}
+
+/* ============================================
+   Report Section
+   ============================================ */
+
+.report-section {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-sm);
+  align-items: center;
+}
+
+.report-hint {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+/* ============================================
+   Mode Selector
+   ============================================ */
+
+.mode-selector {
+  display: flex;
+  gap: var(--s-xs);
+  background: var(--border-subtle);
+  border-radius: var(--r-full);
+  padding: 3px;
+}
+
+.mode-btn {
+  padding: var(--s-sm) var(--s-md);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  transition: all var(--duration-fast) var(--ease);
+  white-space: nowrap;
+}
+
+.mode-btn.active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ============================================
+   Pregnancy Card
+   ============================================ */
+
+.pregnancy-card {
+  margin-top: var(--s-xl);
+  padding: var(--s-xl);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--s-xl);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.preg-week {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 56px;
+}
+
+.preg-week-num {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.preg-week-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preg-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preg-status {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.preg-due {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   TTC Card (reuses pred-body styles)
+   ============================================ */
+
+.ttc-card {
+  margin-top: var(--s-md);
+  padding: var(--s-lg) var(--s-xl);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--s-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
 }
