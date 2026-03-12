@@ -21,6 +21,8 @@
   --accent-bg-strong: rgba(196, 101, 74, 0.15);
 
   /* Semantic */
+  --flow-spotting: #F0DDD7;
+  --flow-spotting-text: #9B6B5A;
   --flow-light: #EACDC4;
   --flow-light-text: #8B5A4A;
   --flow-medium: #D4937E;
@@ -430,6 +432,11 @@ input, textarea {
 }
 
 /* Flow states */
+.cal-day.flow-spotting {
+  background: var(--flow-spotting);
+  color: var(--flow-spotting-text);
+}
+
 .cal-day.flow-light {
   background: var(--flow-light);
   color: var(--flow-light-text);
@@ -622,7 +629,7 @@ input, textarea {
 /* Flow selection */
 .flow-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--s-sm);
 }
 
@@ -653,6 +660,7 @@ input, textarea {
   transition: all var(--duration-fast) var(--ease);
 }
 
+.fc-spotting { border-color: var(--flow-spotting); background: var(--flow-spotting); }
 .fc-light { border-color: var(--flow-light); background: var(--flow-light); }
 .fc-medium { border-color: var(--flow-medium); background: var(--flow-medium); }
 .fc-heavy { border-color: var(--flow-heavy); background: var(--flow-heavy); }
@@ -950,9 +958,123 @@ input, textarea {
 }
 
 .dot-flow { background: var(--accent); }
+.dot-spotting { background: var(--flow-spotting); border: 1.5px solid var(--flow-spotting-text); box-sizing: border-box; }
 .dot-symptom { background: var(--symptom); }
 .dot-predicted { background: var(--predicted); border: 1.5px solid var(--accent); box-sizing: border-box; }
 .dot-fertile { background: var(--fertile); }
+
+/* ============================================
+   Alert Banner
+   ============================================ */
+
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+  padding: var(--s-md) var(--s-lg);
+  background: var(--accent-bg);
+  border-radius: var(--r-md);
+  margin-bottom: var(--s-lg);
+  animation: screenIn var(--duration) var(--ease);
+}
+
+.alert-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.alert-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.alert-dismiss {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-full);
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.alert-dismiss:active {
+  background: var(--accent-bg-strong);
+}
+
+.alert-banner.alert-fertile {
+  background: var(--fertile-bg);
+}
+
+.alert-banner.alert-fertile .alert-icon {
+  background: var(--fertile);
+}
+
+/* ============================================
+   Reminder Prompt
+   ============================================ */
+
+.reminder-prompt {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: var(--s-xl);
+  margin-bottom: var(--s-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+  animation: screenIn var(--duration) var(--ease);
+}
+
+.reminder-inner {
+  display: flex;
+  gap: var(--s-lg);
+  align-items: flex-start;
+}
+
+.reminder-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-full);
+  background: var(--accent-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.reminder-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reminder-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.reminder-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.reminder-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--s-md);
+}
 
 /* ============================================
    Empty State

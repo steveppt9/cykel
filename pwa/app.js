@@ -628,8 +628,101 @@ function enterApp() {
 
   showScreen('calendar');
   renderCalendar();
+  checkAlerts();
   resetAutoLock();
 }
+
+// ============================================
+// Smart alerts & reminder prompt
+// ============================================
+
+function checkAlerts() {
+  const banner = document.getElementById('alert-banner');
+  const alertText = document.getElementById('alert-text');
+  const reminderPrompt = document.getElementById('reminder-prompt');
+
+  banner.classList.add('hidden');
+  banner.classList.remove('alert-fertile');
+  reminderPrompt.classList.add('hidden');
+
+  if (!appData) return;
+
+  const today = fmtDate(new Date());
+  const pred = predict(appData.cycles);
+  const fw = showFertility ? fertilityWindow(appData.cycles) : null;
+
+  // Check for contextual alert (priority order)
+  let alertMsg = null;
+  let isFertileAlert = false;
+
+  if (fw) {
+    const daysToFertile = daysBetweenDates(today, fw.fertile_start);
+    const daysToOvulation = daysBetweenDates(today, fw.ovulation_day);
+
+    if (daysToOvulation === 0) {
+      alertMsg = 'Estimated ovulation day';
+      isFertileAlert = true;
+    } else if (today >= fw.peak_start && today <= fw.peak_end && daysToOvulation !== 0) {
+      alertMsg = 'Peak fertility — highest chance of conception';
+      isFertileAlert = true;
+    } else if (today >= fw.fertile_start && today <= fw.fertile_end) {
+      alertMsg = 'You\'re in your fertile window';
+      isFertileAlert = true;
+    } else if (daysToFertile === 1) {
+      alertMsg = 'Fertile window starts tomorrow';
+      isFertileAlert = true;
+    } else if (daysToFertile === 2) {
+      alertMsg = 'Fertile window starts in 2 days';
+      isFertileAlert = true;
+    }
+  }
+
+  if (!alertMsg && pred) {
+    const daysToPeriod = daysBetweenDates(today, pred.predicted_start);
+    if (daysToPeriod === 0) {
+      alertMsg = 'Period expected today';
+    } else if (daysToPeriod === 1) {
+      alertMsg = 'Period expected tomorrow';
+    } else if (daysToPeriod === 2) {
+      alertMsg = 'Period expected in 2 days';
+    } else if (daysToPeriod === 3) {
+      alertMsg = 'Period expected in 3 days';
+    } else if (daysToPeriod < 0 && daysToPeriod >= -3) {
+      // Period is late
+      const late = Math.abs(daysToPeriod);
+      alertMsg = `Period is ${late} day${late === 1 ? '' : 's'} late`;
+    }
+  }
+
+  if (alertMsg) {
+    alertText.textContent = alertMsg;
+    if (isFertileAlert) banner.classList.add('alert-fertile');
+    banner.classList.remove('hidden');
+  }
+
+  // Show reminder prompt once after first log
+  if (appData.day_logs.length > 0 && !appData.settings.reminder_dismissed) {
+    reminderPrompt.classList.remove('hidden');
+  }
+}
+
+function daysBetweenDates(a, b) {
+  const da = new Date(a + 'T00:00:00');
+  const db = new Date(b + 'T00:00:00');
+  return Math.round((db - da) / 86400000);
+}
+
+document.getElementById('btn-dismiss-alert').addEventListener('click', () => {
+  document.getElementById('alert-banner').classList.add('hidden');
+});
+
+document.getElementById('btn-dismiss-reminder').addEventListener('click', async () => {
+  document.getElementById('reminder-prompt').classList.add('hidden');
+  if (appData) {
+    appData.settings.reminder_dismissed = true;
+    await saveData();
+  }
+});
 
 // ============================================
 // Auto-lock
@@ -779,8 +872,10 @@ function renderCalendar() {
 
     if (dateStr === todayStr) cell.classList.add('is-today');
     const log = logMap[dateStr];
-    const hasFlow = log && log.flow_level !== 'None';
+    const hasFlow = log && log.flow_level !== 'None' && log.flow_level !== 'Spotting';
+    const hasSpotting = log && log.flow_level === 'Spotting';
     if (hasFlow) cell.classList.add(`flow-${log.flow_level.toLowerCase()}`);
+    if (hasSpotting) cell.classList.add('flow-spotting');
 
     if (!hasFlow) {
       if (fertileDates.has(dateStr)) {

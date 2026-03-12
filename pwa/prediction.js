@@ -51,7 +51,7 @@ function stdDev(arr) {
  */
 export function rebuildCycles(dayLogs) {
   const flowDays = dayLogs
-    .filter(l => l.flow_level !== 'None')
+    .filter(l => l.flow_level !== 'None' && l.flow_level !== 'Spotting')
     .map(l => l.date)
     .sort();
 
