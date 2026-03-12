@@ -1,8 +1,9 @@
 // ============================================
-// Cykel PWA — App (no server, no Tauri)
+// Cykel PWA — App v3 (PIN + passphrase + biometric unlock)
 // ============================================
 
 import * as storage from './storage.js';
+import { zeroize } from './crypto.js';
 import { rebuildCycles, predict, fertilityWindow, cycleStats, fmtDate } from './prediction.js';
 
 // ============================================
@@ -11,7 +12,6 @@ import { rebuildCycles, predict, fertilityWindow, cycleStats, fmtDate } from './
 
 let deferredInstallPrompt = null;
 
-// Capture Android's beforeinstallprompt
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
@@ -41,7 +41,6 @@ function shouldShowInstall() {
 }
 
 function showInstallPrompt() {
-  // Ensure all install variants are hidden first
   document.getElementById('install-ios').classList.add('hidden');
   document.getElementById('install-android').classList.add('hidden');
   document.getElementById('install-desktop').classList.add('hidden');
@@ -59,43 +58,22 @@ function showInstallPrompt() {
   }
 }
 
-// Android native install button
 document.getElementById('btn-android-install').addEventListener('click', async () => {
   if (deferredInstallPrompt) {
     deferredInstallPrompt.prompt();
     const result = await deferredInstallPrompt.userChoice;
     deferredInstallPrompt = null;
-    if (result.outcome === 'accepted') {
-      skipInstallScreen();
-    }
+    if (result.outcome === 'accepted') skipInstallScreen();
   } else {
-    // Fallback: show manual instructions
     document.getElementById('install-android').innerHTML = `
       <div class="install-how">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <span class="step-text">Tap the <strong>menu</strong> button (three dots)</span>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <span class="step-text">Tap <strong>Add to Home screen</strong></span>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-content">
-            <span class="step-text">Tap <strong>Add</strong> — that's it</span>
-          </div>
-        </div>
-      </div>
-    `;
+        <div class="step"><div class="step-num">1</div><div class="step-content"><span class="step-text">Tap the <strong>menu</strong> button (three dots)</span></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><span class="step-text">Tap <strong>Add to Home screen</strong></span></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><span class="step-text">Tap <strong>Add</strong> — that's it</span></div></div>
+      </div>`;
   }
 });
 
-// Skip install
 document.getElementById('btn-skip-install').addEventListener('click', skipInstallScreen);
 
 function skipInstallScreen() {
@@ -107,8 +85,11 @@ function skipInstallScreen() {
 // State
 // ============================================
 
-let cryptoKey = null;   // non-extractable CryptoKey, held while unlocked
+let masterKeyBytes = null; // Uint8Array(32) — zeroed on lock
 let appData = null;
+let pinEnabled = false;    // cached flag
+let bioEnabled = false;    // cached flag
+let bioTriedThisLock = false; // prevent auto-prompt loop
 let currentYear, currentMonth;
 let selectedFlow = 'None';
 let selectedSymptoms = new Set();
@@ -117,23 +98,20 @@ let autoLockTimer = null;
 let autoLockMinutes = 5;
 let showFertility = false;
 
-// Default app data structure
 function defaultAppData() {
   return {
-    cycles: [],
-    day_logs: [],
-    symptoms: [],
+    cycles: [], day_logs: [], symptoms: [],
     settings: { auto_lock_minutes: 5, show_fertility: false },
   };
 }
 
 // ============================================
-// Persistence helpers
+// Persistence
 // ============================================
 
 async function saveData() {
-  if (!cryptoKey || !appData) return;
-  await storage.save(cryptoKey, appData);
+  if (!masterKeyBytes || !appData) return;
+  await storage.save(masterKeyBytes, appData);
 }
 
 // ============================================
@@ -141,12 +119,10 @@ async function saveData() {
 // ============================================
 
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => {
-    s.classList.add('hidden');
-  });
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   const screen = document.getElementById(`screen-${id}`);
   screen.classList.remove('hidden');
-  screen.offsetHeight; // force reflow for animation
+  screen.offsetHeight;
 }
 
 // ============================================
@@ -154,11 +130,9 @@ function showScreen(id) {
 // ============================================
 
 async function init() {
-  // Register service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
-
   if (shouldShowInstall()) {
     showInstallPrompt();
   } else {
@@ -168,11 +142,31 @@ async function init() {
 
 async function startApp() {
   const exists = await storage.dataExists();
-  showScreen(exists ? 'unlock' : 'setup');
+  if (!exists) {
+    showScreen('setup');
+    return;
+  }
+  pinEnabled = await storage.hasPin();
+  bioEnabled = await storage.hasBio();
+  bioTriedThisLock = false;
+
+  if (pinEnabled) {
+    resetPinDots('pin-unlock-dots');
+    showScreen('pin-unlock');
+  } else {
+    showScreen('unlock');
+  }
+  showBioButtons();
+
+  // Auto-trigger biometric if available
+  if (bioEnabled) {
+    bioTriedThisLock = true;
+    setTimeout(() => attemptBioUnlock(), 300);
+  }
 }
 
 // ============================================
-// Setup
+// Setup (passphrase)
 // ============================================
 
 const setupPass = document.getElementById('setup-pass');
@@ -193,45 +187,319 @@ btnSetup.addEventListener('click', async () => {
   setupError.textContent = '';
   btnSetup.disabled = true;
   try {
-    cryptoKey = await storage.createKey(setupPass.value);
+    const result = await storage.setup(setupPass.value);
     setupPass.value = '';
     setupConfirm.value = '';
-    appData = defaultAppData();
-    await saveData();
-    enterApp();
+    masterKeyBytes = result.masterKeyBytes;
+    appData = result.data;
+    // Prompt to set PIN
+    showPinSetup();
   } catch (e) {
     setupError.textContent = 'Something went wrong. Try again.';
     btnSetup.disabled = false;
-    cryptoKey = null;
+    masterKeyBytes = null;
     appData = null;
   }
 });
 
 // ============================================
-// Unlock
+// PIN pad shared logic
+// ============================================
+
+const PIN_LENGTH = 4;
+
+function createPinPadHandler(dotsId, padId, onComplete) {
+  let digits = '';
+  const dotsEl = document.getElementById(dotsId);
+  const padEl = document.getElementById(padId);
+
+  function updateDots() {
+    const dots = dotsEl.querySelectorAll('.pin-dot');
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('filled', i < digits.length);
+    });
+  }
+
+  function reset() {
+    digits = '';
+    updateDots();
+  }
+
+  function shake() {
+    const dots = dotsEl.querySelectorAll('.pin-dot');
+    dots.forEach(d => d.classList.add('error'));
+    setTimeout(() => {
+      dots.forEach(d => d.classList.remove('error'));
+      reset();
+    }, 500);
+  }
+
+  padEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.pin-key');
+    if (!btn || btn.classList.contains('pin-key-empty')) return;
+
+    const key = btn.dataset.key;
+    if (key === 'delete') {
+      digits = digits.slice(0, -1);
+      updateDots();
+      return;
+    }
+
+    if (digits.length >= PIN_LENGTH) return;
+    digits += key;
+    updateDots();
+
+    if (digits.length === PIN_LENGTH) {
+      const pin = digits;
+      setTimeout(() => onComplete(pin, reset, shake), 150);
+    }
+  });
+
+  return { reset, shake };
+}
+
+function resetPinDots(dotsId) {
+  const dots = document.getElementById(dotsId).querySelectorAll('.pin-dot');
+  dots.forEach(d => {
+    d.classList.remove('filled', 'error');
+  });
+}
+
+// ============================================
+// PIN setup (after passphrase creation / from settings)
+// ============================================
+
+let pinSetupFirstEntry = '';
+let pinSetupHandler = null;
+
+function showPinSetup() {
+  pinSetupFirstEntry = '';
+  document.getElementById('pin-setup-title').textContent = 'Set a PIN';
+  document.getElementById('pin-setup-subtitle').textContent = 'For quick daily unlock';
+  document.getElementById('pin-setup-error').textContent = '';
+  resetPinDots('pin-setup-dots');
+  showScreen('pin-setup');
+
+  if (!pinSetupHandler) {
+    pinSetupHandler = createPinPadHandler('pin-setup-dots', 'pin-setup-pad', handlePinSetupComplete);
+  } else {
+    pinSetupHandler.reset();
+  }
+}
+
+async function handlePinSetupComplete(pin, reset, shake) {
+  if (!pinSetupFirstEntry) {
+    // First entry — ask to confirm
+    pinSetupFirstEntry = pin;
+    document.getElementById('pin-setup-title').textContent = 'Confirm PIN';
+    document.getElementById('pin-setup-subtitle').textContent = 'Enter the same PIN again';
+    reset();
+    return;
+  }
+
+  // Second entry — verify match
+  if (pin !== pinSetupFirstEntry) {
+    document.getElementById('pin-setup-error').textContent = 'PINs didn\'t match. Try again.';
+    pinSetupFirstEntry = '';
+    document.getElementById('pin-setup-title').textContent = 'Set a PIN';
+    document.getElementById('pin-setup-subtitle').textContent = 'For quick daily unlock';
+    shake();
+    return;
+  }
+
+  // Match! Save PIN
+  document.getElementById('pin-setup-error').textContent = '';
+  await storage.setupPin(masterKeyBytes, pin);
+  pinEnabled = true;
+  pinSetupFirstEntry = '';
+  enterApp();
+}
+
+document.getElementById('btn-skip-pin').addEventListener('click', () => {
+  pinSetupFirstEntry = '';
+  enterApp();
+});
+
+// ============================================
+// PIN unlock
+// ============================================
+
+const pinUnlockError = document.getElementById('pin-unlock-error');
+const MAX_PIN_ATTEMPTS = 3;
+
+function getFailedPinAttempts() {
+  return parseInt(localStorage.getItem('cykel_pin_fails') || '0', 10);
+}
+
+function setFailedPinAttempts(n) {
+  localStorage.setItem('cykel_pin_fails', String(n));
+}
+
+let pinUnlockHandler = null;
+
+function initPinUnlock() {
+  if (!pinUnlockHandler) {
+    pinUnlockHandler = createPinPadHandler('pin-unlock-dots', 'pin-unlock-pad', handlePinUnlock);
+  }
+}
+
+initPinUnlock();
+
+async function handlePinUnlock(pin, reset, shake) {
+  pinUnlockError.textContent = '';
+  try {
+    const result = await storage.unlockWithPin(pin);
+    masterKeyBytes = result.masterKeyBytes;
+    appData = result.data;
+    setFailedPinAttempts(0);
+    clearLockout();
+
+    if (!appData.settings) appData.settings = defaultAppData().settings;
+    appData.cycles = rebuildCycles(appData.day_logs);
+    await saveData();
+    enterApp();
+  } catch (e) {
+    const attempts = getFailedPinAttempts() + 1;
+    setFailedPinAttempts(attempts);
+
+    if (attempts >= MAX_PIN_ATTEMPTS) {
+      // PIN locked out — require passphrase
+      pinUnlockError.textContent = '';
+      setFailedPinAttempts(0);
+      showScreen('unlock');
+      return;
+    }
+
+    const remaining = MAX_PIN_ATTEMPTS - attempts;
+    pinUnlockError.textContent = `Wrong PIN. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`;
+    shake();
+  }
+}
+
+document.getElementById('btn-use-passphrase').addEventListener('click', () => {
+  showScreen('unlock');
+  showBioButtons();
+});
+
+// ============================================
+// Biometric (WebAuthn PRF)
+// ============================================
+
+const BIO_PRF_SALT = new TextEncoder().encode('cykel-biometric-v1');
+
+async function isBioSupported() {
+  if (!window.PublicKeyCredential) return false;
+  try {
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  } catch {
+    return false;
+  }
+}
+
+async function registerBioCredential() {
+  const credential = await navigator.credentials.create({
+    publicKey: {
+      rp: { name: 'Cykel' },
+      user: {
+        id: crypto.getRandomValues(new Uint8Array(16)),
+        name: 'cykel-user',
+        displayName: 'Cykel User',
+      },
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      pubKeyCredParams: [
+        { alg: -7, type: 'public-key' },
+        { alg: -257, type: 'public-key' },
+      ],
+      authenticatorSelection: {
+        authenticatorAttachment: 'platform',
+        userVerification: 'required',
+        residentKey: 'preferred',
+      },
+      extensions: { prf: {} },
+    },
+  });
+
+  const prfEnabled = credential.getClientExtensionResults()?.prf?.enabled;
+  if (!prfEnabled) {
+    throw new Error('PRF not supported');
+  }
+
+  const credentialId = new Uint8Array(credential.rawId);
+  const prfOutput = await getBioPrfOutput(credentialId);
+  return { credentialId, prfOutput };
+}
+
+async function getBioPrfOutput(credentialId) {
+  const assertion = await navigator.credentials.get({
+    publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      allowCredentials: [{
+        id: credentialId,
+        type: 'public-key',
+        transports: ['internal'],
+      }],
+      userVerification: 'required',
+      extensions: {
+        prf: { eval: { first: BIO_PRF_SALT } },
+      },
+    },
+  });
+
+  const prfOutput = assertion.getClientExtensionResults()?.prf?.results?.first;
+  if (!prfOutput) throw new Error('PRF output missing');
+  return new Uint8Array(prfOutput);
+}
+
+async function attemptBioUnlock() {
+  try {
+    const credentialId = await storage.getBioCredentialId();
+    if (!credentialId) return false;
+
+    const prfOutput = await getBioPrfOutput(credentialId);
+    const result = await storage.unlockWithBio(prfOutput);
+    masterKeyBytes = result.masterKeyBytes;
+    appData = result.data;
+    clearLockout();
+
+    if (!appData.settings) appData.settings = defaultAppData().settings;
+    appData.cycles = rebuildCycles(appData.day_logs);
+    await saveData();
+    enterApp();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function showBioButtons() {
+  document.getElementById('btn-bio-pin').classList.toggle('hidden', !bioEnabled);
+  document.getElementById('btn-bio-pass').classList.toggle('hidden', !bioEnabled);
+}
+
+document.getElementById('btn-bio-pin').addEventListener('click', () => attemptBioUnlock());
+document.getElementById('btn-bio-pass').addEventListener('click', () => attemptBioUnlock());
+
+// ============================================
+// Passphrase unlock
 // ============================================
 
 const unlockPass = document.getElementById('unlock-pass');
 const btnUnlock = document.getElementById('btn-unlock');
 const unlockError = document.getElementById('unlock-error');
 
-// Brute-force protection
-const MAX_ATTEMPTS = 5;
-const BASE_LOCKOUT_MS = 30000; // 30 seconds
+const MAX_PASS_ATTEMPTS = 5;
+const BASE_LOCKOUT_MS = 30000;
 let lockoutTimer = null;
 
 function getFailedAttempts() {
   return parseInt(localStorage.getItem('cykel_failed_attempts') || '0', 10);
 }
-
 function setFailedAttempts(n) {
   localStorage.setItem('cykel_failed_attempts', String(n));
 }
-
 function getLockoutUntil() {
   return parseInt(localStorage.getItem('cykel_lockout_until') || '0', 10);
 }
-
 function setLockoutUntil(ts) {
   localStorage.setItem('cykel_lockout_until', String(ts));
 }
@@ -239,6 +507,7 @@ function setLockoutUntil(ts) {
 function clearLockout() {
   localStorage.removeItem('cykel_failed_attempts');
   localStorage.removeItem('cykel_lockout_until');
+  localStorage.removeItem('cykel_pin_fails');
   clearInterval(lockoutTimer);
   lockoutTimer = null;
 }
@@ -269,18 +538,15 @@ function startLockoutCountdown() {
       unlockError.textContent = `Too many attempts. Try again in ${remaining}s`;
     }
   }
-
   tick();
   lockoutTimer = setInterval(tick, 1000);
 }
 
-// On page load, resume lockout if active
 if (getLockoutUntil() > Date.now()) {
   setTimeout(startLockoutCountdown, 0);
 }
 
 btnUnlock.addEventListener('click', async () => {
-  // Check active lockout
   if (getLockoutUntil() > Date.now()) {
     startLockoutCountdown();
     return;
@@ -292,41 +558,41 @@ btnUnlock.addEventListener('click', async () => {
   btnUnlock.disabled = true;
 
   try {
-    const result = await storage.load(pass);
-    // Passphrase is never stored — only the derived key
+    const result = await storage.unlockWithPassphrase(pass);
     unlockPass.value = '';
+    masterKeyBytes = result.masterKeyBytes;
     appData = result.data;
-    cryptoKey = result.key;
     clearLockout();
 
-    // Ensure settings exist (migration from older data)
     if (!appData.settings) appData.settings = defaultAppData().settings;
-
-    // Rebuild cycles
     appData.cycles = rebuildCycles(appData.day_logs);
     await saveData();
 
-    enterApp();
+    // Check if PIN is set, offer setup if not
+    pinEnabled = await storage.hasPin();
+    if (!pinEnabled) {
+      showPinSetup();
+    } else {
+      enterApp();
+    }
   } catch (e) {
     const attempts = getFailedAttempts() + 1;
     setFailedAttempts(attempts);
 
-    if (attempts >= MAX_ATTEMPTS) {
-      // Exponential lockout: 30s, 60s, 120s, ...
-      const multiplier = Math.pow(2, Math.floor(attempts / MAX_ATTEMPTS) - 1);
-      const lockoutMs = BASE_LOCKOUT_MS * multiplier;
-      setLockoutUntil(Date.now() + lockoutMs);
+    if (attempts >= MAX_PASS_ATTEMPTS) {
+      const multiplier = Math.pow(2, Math.floor(attempts / MAX_PASS_ATTEMPTS) - 1);
+      setLockoutUntil(Date.now() + BASE_LOCKOUT_MS * multiplier);
       startLockoutCountdown();
     } else {
-      const remaining = MAX_ATTEMPTS - attempts;
+      const remaining = MAX_PASS_ATTEMPTS - attempts;
       unlockError.textContent = `Wrong passphrase. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`;
     }
 
     unlockPass.value = '';
     unlockPass.focus();
     const wrap = unlockPass.parentElement;
-    wrap.style.animation = 'shake 400ms ease';
-    setTimeout(() => wrap.style.animation = '', 400);
+    wrap.classList.add('do-shake');
+    setTimeout(() => wrap.classList.remove('do-shake'), 400);
   }
   if (!lockoutTimer) btnUnlock.disabled = false;
 });
@@ -348,6 +614,18 @@ function enterApp() {
   document.getElementById('toggle-fertility').checked = showFertility;
   document.getElementById('legend-fertile').classList.toggle('hidden', !showFertility);
 
+  // Update PIN toggle in settings
+  document.getElementById('toggle-pin').checked = pinEnabled;
+
+  // Update bio toggle in settings (async, non-blocking)
+  document.getElementById('toggle-bio').checked = bioEnabled;
+  isBioSupported().then(supported => {
+    document.getElementById('setting-bio-row').classList.toggle('hidden', !supported);
+    if (supported && isIOS()) {
+      document.getElementById('bio-label').textContent = 'Face ID / Touch ID';
+    }
+  });
+
   showScreen('calendar');
   renderCalendar();
   resetAutoLock();
@@ -365,18 +643,33 @@ function resetAutoLock() {
 document.addEventListener('pointerdown', resetAutoLock);
 document.addEventListener('keydown', resetAutoLock);
 
-// Lock on visibility change (phone screen off / tab switch)
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && cryptoKey) {
+  if (document.hidden && masterKeyBytes) {
     doLock();
   }
 });
 
 function doLock() {
   clearTimeout(autoLockTimer);
-  cryptoKey = null;
+  zeroize(masterKeyBytes);
+  masterKeyBytes = null;
   appData = null;
-  showScreen('unlock');
+  bioTriedThisLock = false;
+
+  if (pinEnabled) {
+    resetPinDots('pin-unlock-dots');
+    document.getElementById('pin-unlock-error').textContent = '';
+    showScreen('pin-unlock');
+  } else {
+    showScreen('unlock');
+  }
+  showBioButtons();
+
+  // Auto-trigger biometric on lock
+  if (bioEnabled && !bioTriedThisLock) {
+    bioTriedThisLock = true;
+    setTimeout(() => attemptBioUnlock(), 300);
+  }
 }
 
 // ============================================
@@ -417,7 +710,6 @@ function renderCalendar() {
   monthYear.textContent = currentYear;
   document.querySelectorAll('.cal-day').forEach(el => el.remove());
 
-  // Lookups
   const logMap = {};
   appData.day_logs.forEach(l => { logMap[l.date] = l; });
 
@@ -427,19 +719,14 @@ function renderCalendar() {
     symptomMap[s.date].push(s);
   });
 
-  // Predictions
   const pred = predict(appData.cycles);
   const predDates = new Set();
   if (pred) {
     let d = new Date(pred.predicted_start + 'T00:00:00');
     const end = new Date(pred.predicted_end + 'T00:00:00');
-    while (d <= end) {
-      predDates.add(fmtDate(d));
-      d.setDate(d.getDate() + 1);
-    }
+    while (d <= end) { predDates.add(fmtDate(d)); d.setDate(d.getDate() + 1); }
   }
 
-  // Fertility
   const fertileDates = new Set();
   const peakDates = new Set();
   let ovulationDate = null;
@@ -448,20 +735,13 @@ function renderCalendar() {
   if (fw) {
     let d = new Date(fw.fertile_start + 'T00:00:00');
     const end = new Date(fw.fertile_end + 'T00:00:00');
-    while (d <= end) {
-      fertileDates.add(fmtDate(d));
-      d.setDate(d.getDate() + 1);
-    }
+    while (d <= end) { fertileDates.add(fmtDate(d)); d.setDate(d.getDate() + 1); }
     let pk = new Date(fw.peak_start + 'T00:00:00');
     const pkEnd = new Date(fw.peak_end + 'T00:00:00');
-    while (pk <= pkEnd) {
-      peakDates.add(fmtDate(pk));
-      pk.setDate(pk.getDate() + 1);
-    }
+    while (pk <= pkEnd) { peakDates.add(fmtDate(pk)); pk.setDate(pk.getDate() + 1); }
     ovulationDate = fw.ovulation_day;
   }
 
-  // UI state
   const hasData = appData.day_logs.length > 0 || pred != null;
   emptyState.classList.toggle('hidden', hasData);
   cycleLegend.classList.toggle('hidden', !hasData);
@@ -480,7 +760,6 @@ function renderCalendar() {
     fertilityCard.classList.add('hidden');
   }
 
-  // Build grid
   const firstDay = new Date(currentYear, currentMonth - 1, 1);
   const lastDay = new Date(currentYear, currentMonth, 0);
   const startDow = firstDay.getDay();
@@ -499,10 +778,8 @@ function renderCalendar() {
     cell.textContent = d;
 
     if (dateStr === todayStr) cell.classList.add('is-today');
-
     const log = logMap[dateStr];
     const hasFlow = log && log.flow_level !== 'None';
-
     if (hasFlow) cell.classList.add(`flow-${log.flow_level.toLowerCase()}`);
 
     if (!hasFlow) {
@@ -515,7 +792,6 @@ function renderCalendar() {
     }
 
     if (symptomMap[dateStr]) cell.classList.add('has-symptoms');
-
     cell.addEventListener('click', () => openDayLog(dateStr, log, symptomMap[dateStr]));
     calendarGrid.appendChild(cell);
   }
@@ -584,7 +860,6 @@ document.getElementById('symptom-chips').addEventListener('click', e => {
 document.getElementById('btn-save-day').addEventListener('click', async () => {
   if (!selectedDate || !appData) return;
 
-  // Upsert day log
   const existing = appData.day_logs.find(l => l.date === selectedDate);
   if (existing) {
     existing.flow_level = selectedFlow;
@@ -593,15 +868,12 @@ document.getElementById('btn-save-day').addEventListener('click', async () => {
     appData.day_logs.push({ date: selectedDate, flow_level: selectedFlow, notes: daylogNotes.value });
   }
 
-  // Replace symptoms for this date
   appData.symptoms = appData.symptoms.filter(s => s.date !== selectedDate);
   for (const sym of selectedSymptoms) {
     appData.symptoms.push({ date: selectedDate, symptom_type: sym, severity: 2 });
   }
 
-  // Rebuild cycles
   appData.cycles = rebuildCycles(appData.day_logs);
-
   await saveData();
   showScreen('calendar');
   renderCalendar();
@@ -654,6 +926,40 @@ document.getElementById('toggle-fertility').addEventListener('change', async (e)
   }
 });
 
+// Bio toggle
+document.getElementById('toggle-bio').addEventListener('change', async (e) => {
+  if (e.target.checked) {
+    try {
+      const { credentialId, prfOutput } = await registerBioCredential();
+      await storage.setupBio(masterKeyBytes, prfOutput, credentialId);
+      bioEnabled = true;
+    } catch {
+      e.target.checked = false;
+      showModal(
+        'Not available',
+        'Biometric authentication with encryption support is not available on this device. Use a PIN or passphrase instead.',
+        'OK',
+        () => {}
+      );
+    }
+  } else {
+    await storage.removeBio();
+    bioEnabled = false;
+  }
+});
+
+// PIN toggle
+document.getElementById('toggle-pin').addEventListener('change', async (e) => {
+  if (e.target.checked) {
+    // Enable PIN — show setup
+    showPinSetup();
+  } else {
+    // Disable PIN
+    await storage.removePin();
+    pinEnabled = false;
+  }
+});
+
 // Auto-lock stepper
 const autolockDisplay = document.getElementById('setting-autolock');
 
@@ -703,12 +1009,15 @@ document.getElementById('btn-wipe').addEventListener('click', () => {
     'Erase All Data',
     async () => {
       await storage.wipe();
-      cryptoKey = null;
+      zeroize(masterKeyBytes);
+      masterKeyBytes = null;
       appData = null;
+      pinEnabled = false;
+      bioEnabled = false;
       clearLockout();
       showScreen('setup');
     },
-    true // destructive
+    true
   );
 });
 
@@ -717,7 +1026,6 @@ document.getElementById('btn-wipe').addEventListener('click', () => {
 // ============================================
 
 function showModal(title, message, confirmLabel, onConfirm, destructive = false) {
-  // Remove any existing modal
   const existing = document.getElementById('cykel-modal');
   if (existing) existing.remove();
 
@@ -732,12 +1040,9 @@ function showModal(title, message, confirmLabel, onConfirm, destructive = false)
         <button class="modal-btn modal-cancel">Cancel</button>
         <button class="modal-btn ${destructive ? 'modal-destructive' : 'modal-confirm'}">${confirmLabel}</button>
       </div>
-    </div>
-  `;
+    </div>`;
 
   document.getElementById('app').appendChild(overlay);
-
-  // Trigger entry animation
   requestAnimationFrame(() => overlay.classList.add('modal-visible'));
 
   const close = () => {

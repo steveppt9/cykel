@@ -138,6 +138,10 @@ input, textarea {
   80% { transform: translateX(4px); }
 }
 
+.do-shake {
+  animation: shake 400ms ease;
+}
+
 @keyframes screenIn {
   from {
     opacity: 0;
@@ -1343,6 +1347,123 @@ input, textarea {
 .modal-destructive {
   background: var(--danger);
   color: white;
+}
+
+/* ============================================
+   PIN Pad
+   ============================================ */
+
+.pin-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pin-subtitle {
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+.pin-area {
+  width: 100%;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-xl);
+}
+
+.pin-dots {
+  display: flex;
+  gap: var(--s-lg);
+  justify-content: center;
+}
+
+.pin-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--r-full);
+  border: 2px solid var(--border);
+  background: transparent;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.pin-dot.filled {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.15);
+}
+
+.pin-dot.error {
+  background: var(--danger);
+  border-color: var(--danger);
+  animation: shake 400ms ease;
+}
+
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-md);
+  width: 100%;
+}
+
+.pin-key {
+  aspect-ratio: 1.3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--duration-fast) var(--ease);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.pin-key:active {
+  transform: scale(0.92);
+  background: var(--border-subtle);
+}
+
+.pin-key-empty {
+  visibility: hidden;
+}
+
+.pin-key-delete {
+  color: var(--text-secondary);
+  background: transparent;
+  border-color: transparent;
+}
+
+.pin-key-delete:active {
+  background: var(--border-subtle);
+}
+
+/* ============================================
+   Biometric Button
+   ============================================ */
+
+.bio-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  transition: all var(--duration-fast) var(--ease);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.bio-btn:active {
+  transform: scale(0.92);
+  background: var(--accent-bg);
+  border-color: var(--accent);
 }
 
 .install-desktop-msg {
