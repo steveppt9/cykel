@@ -135,6 +135,85 @@
           </button>
           <p id="unlock-error" class="error-text"></p>
         </div>
+        <button id="btn-bio-pass" class="bio-btn hidden" aria-label="Unlock with biometrics">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 3h4v4M3 17v4h4M17 21h4v-4"/><circle cx="12" cy="12" r="4"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- PIN Setup Screen -->
+    <div id="screen-pin-setup" class="screen hidden">
+      <div class="screen-inner center-v">
+        <div class="brand-block">
+          <div class="brand-mark"></div>
+          <h2 id="pin-setup-title" class="pin-title">Set a PIN</h2>
+          <p id="pin-setup-subtitle" class="pin-subtitle">For quick daily unlock</p>
+        </div>
+        <div class="pin-area">
+          <div id="pin-setup-dots" class="pin-dots">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+          </div>
+          <p id="pin-setup-error" class="error-text"></p>
+          <div id="pin-setup-pad" class="pin-pad">
+            <button class="pin-key" data-key="1">1</button>
+            <button class="pin-key" data-key="2">2</button>
+            <button class="pin-key" data-key="3">3</button>
+            <button class="pin-key" data-key="4">4</button>
+            <button class="pin-key" data-key="5">5</button>
+            <button class="pin-key" data-key="6">6</button>
+            <button class="pin-key" data-key="7">7</button>
+            <button class="pin-key" data-key="8">8</button>
+            <button class="pin-key" data-key="9">9</button>
+            <div class="pin-key-empty"></div>
+            <button class="pin-key" data-key="0">0</button>
+            <button class="pin-key pin-key-delete" data-key="delete">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+            </button>
+          </div>
+        </div>
+        <button id="btn-skip-pin" class="btn-text">Skip for now</button>
+      </div>
+    </div>
+
+    <!-- PIN Unlock Screen -->
+    <div id="screen-pin-unlock" class="screen hidden">
+      <div class="screen-inner center-v">
+        <div class="brand-block">
+          <div class="brand-mark"></div>
+          <h1 class="wordmark">cykel</h1>
+        </div>
+        <div class="pin-area">
+          <div id="pin-unlock-dots" class="pin-dots">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+          </div>
+          <p id="pin-unlock-error" class="error-text"></p>
+          <div id="pin-unlock-pad" class="pin-pad">
+            <button class="pin-key" data-key="1">1</button>
+            <button class="pin-key" data-key="2">2</button>
+            <button class="pin-key" data-key="3">3</button>
+            <button class="pin-key" data-key="4">4</button>
+            <button class="pin-key" data-key="5">5</button>
+            <button class="pin-key" data-key="6">6</button>
+            <button class="pin-key" data-key="7">7</button>
+            <button class="pin-key" data-key="8">8</button>
+            <button class="pin-key" data-key="9">9</button>
+            <div class="pin-key-empty"></div>
+            <button class="pin-key" data-key="0">0</button>
+            <button class="pin-key pin-key-delete" data-key="delete">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+            </button>
+          </div>
+        </div>
+        <button id="btn-bio-pin" class="bio-btn hidden" aria-label="Unlock with biometrics">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 3h4v4M3 17v4h4M17 21h4v-4"/><circle cx="12" cy="12" r="4"/></svg>
+        </button>
+        <button id="btn-use-passphrase" class="btn-text">Use passphrase instead</button>
       </div>
     </div>
 
@@ -293,6 +372,18 @@
             <div class="settings-row">
               <div class="setting-info"><span class="setting-label">Fertility Window</span><span class="setting-desc">Show estimated fertile days on calendar</span></div>
               <label class="toggle"><input type="checkbox" id="toggle-fertility" /><span class="toggle-track"></span></label>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-row">
+              <div class="setting-info"><span class="setting-label">Quick Unlock PIN</span><span class="setting-desc">Use a 4-digit PIN instead of your passphrase</span></div>
+              <label class="toggle"><input type="checkbox" id="toggle-pin" /><span class="toggle-track"></span></label>
+            </div>
+            <div id="setting-bio-row" class="hidden">
+              <div class="settings-divider"></div>
+              <div class="settings-row">
+                <div class="setting-info"><span class="setting-label" id="bio-label">Face ID / Fingerprint</span><span class="setting-desc">Unlock with biometrics</span></div>
+                <label class="toggle"><input type="checkbox" id="toggle-bio" /><span class="toggle-track"></span></label>
+              </div>
             </div>
             <div class="settings-divider"></div>
             <div class="settings-row">
