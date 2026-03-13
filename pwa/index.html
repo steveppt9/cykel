@@ -554,6 +554,36 @@
             </div>
           </div>
           <div class="settings-group">
+            <h3 class="group-label">Birth Control</h3>
+            <div class="settings-row">
+              <div class="setting-info"><span class="setting-label">Current Method</span><span class="setting-desc" id="bc-current-desc">None</span></div>
+              <button id="btn-bc-change" class="action-btn">Change</button>
+            </div>
+            <div id="bc-selector" class="bc-selector hidden">
+              <div class="bc-grid" id="bc-grid">
+                <button data-bc="None" class="bc-opt active">None</button>
+                <button data-bc="Pill" class="bc-opt">Pill</button>
+                <button data-bc="IUD" class="bc-opt">IUD</button>
+                <button data-bc="Implant" class="bc-opt">Implant</button>
+                <button data-bc="Patch" class="bc-opt">Patch</button>
+                <button data-bc="Ring" class="bc-opt">Ring</button>
+                <button data-bc="Shot" class="bc-opt">Shot</button>
+                <button data-bc="Condom" class="bc-opt">Condom</button>
+                <button data-bc="Natural" class="bc-opt">Natural</button>
+              </div>
+              <div id="bc-date-row" class="bc-date-row hidden">
+                <label class="bc-date-label">Started on</label>
+                <input type="date" id="bc-start-date" class="bc-date-input" />
+              </div>
+              <button id="btn-bc-save" class="btn-primary btn-sm">Save</button>
+            </div>
+            <div id="bc-history" class="bc-history hidden">
+              <div class="settings-divider"></div>
+              <span class="setting-label">History</span>
+              <div id="bc-history-list" class="bc-history-list"></div>
+            </div>
+          </div>
+          <div class="settings-group">
             <div class="settings-row">
               <div class="setting-info"><span class="setting-label">Fertility Window</span><span class="setting-desc">Show estimated fertile days on calendar</span></div>
               <label class="toggle"><input type="checkbox" id="toggle-fertility" /><span class="toggle-track"></span></label>
@@ -585,6 +615,12 @@
               <div class="setting-info"><span class="setting-label">Export Data</span><span class="setting-desc">Download a plaintext JSON copy</span></div>
               <button id="btn-export" class="action-btn">Export</button>
             </div>
+            <div class="settings-divider"></div>
+            <div class="settings-row">
+              <div class="setting-info"><span class="setting-label">Import from Flo</span><span class="setting-desc">Import a CSV export — processed on-device only</span></div>
+              <button id="btn-import" class="action-btn">Import</button>
+            </div>
+            <input type="file" id="import-file-input" accept=".csv,.zip" class="hidden" />
           </div>
           <div class="settings-group danger-zone">
             <h3 class="group-label">Danger Zone</h3>
