@@ -2016,3 +2016,121 @@ input, textarea {
 .alert-banner.alert-doctor .alert-icon {
   background: #E6890C;
 }
+
+/* ============================================
+   Birth Control Selector
+   ============================================ */
+
+.bc-selector {
+  padding: var(--s-md) 0;
+}
+
+.bc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-sm);
+  margin-bottom: var(--s-md);
+}
+
+.bc-opt {
+  padding: var(--s-sm) var(--s-md);
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration) var(--ease);
+  text-align: center;
+}
+
+.bc-opt.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.bc-date-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+  margin-bottom: var(--s-md);
+}
+
+.bc-date-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.bc-date-input {
+  flex: 1;
+  padding: var(--s-sm) var(--s-md);
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.btn-sm {
+  padding: var(--s-sm) var(--s-xl);
+  font-size: 14px;
+  min-height: 40px;
+}
+
+.bc-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-sm);
+  margin-top: var(--s-sm);
+}
+
+.bc-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--s-sm) var(--s-md);
+  background: var(--surface-elevated);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+
+.bc-history-method {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.bc-history-dates {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+/* ============================================
+   Import Preview Modal
+   ============================================ */
+
+.import-preview {
+  padding: var(--s-lg);
+}
+
+.import-stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--s-sm) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px;
+}
+
+.import-stat-label {
+  color: var(--text-secondary);
+}
+
+.import-stat-value {
+  font-weight: 600;
+  color: var(--text);
+}
