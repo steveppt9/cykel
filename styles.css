@@ -2018,6 +2018,105 @@ input, textarea {
 }
 
 /* ============================================
+   Polish — Micro-interactions
+   ============================================ */
+
+/* Alert dismiss animation */
+.alert-dismiss-anim {
+  animation: slideOutRight 250ms var(--ease) forwards;
+}
+
+@keyframes slideOutRight {
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Card entrance (prediction, fertility, pregnancy, ttc) */
+.prediction-card,
+.fertility-card,
+.pregnancy-card,
+.ttc-card {
+  animation: cardIn 350ms var(--ease) both;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Stagger card entrances */
+.fertility-card { animation-delay: 60ms; }
+.pregnancy-card { animation-delay: 80ms; }
+.ttc-card { animation-delay: 100ms; }
+
+/* Chip tap pop */
+.chip:active {
+  transform: scale(0.92);
+}
+
+.chip.active {
+  transition: all var(--duration-fast) var(--ease);
+}
+
+/* Flow button pop */
+.flow-opt:active .flow-circle {
+  transform: scale(0.85);
+  transition: transform 100ms ease;
+}
+
+/* Calendar day press */
+.cal-day:not(.is-empty):active {
+  transform: scale(0.88);
+  transition: transform 80ms ease;
+}
+
+/* Pin key tactile press */
+.pin-key:active {
+  transform: scale(0.85);
+  background: var(--accent-bg-strong);
+  transition: all 80ms ease;
+}
+
+/* Save button success flash */
+.save-btn:active {
+  transform: scale(0.95);
+  background: var(--symptom);
+  transition: all 100ms ease;
+}
+
+/* Smooth alert banner transitions for swipe */
+.alert-banner {
+  transition: transform 60ms linear, opacity 60ms linear;
+  will-change: transform, opacity;
+}
+
+/* BC option tap */
+.bc-opt:active {
+  transform: scale(0.93);
+  transition: transform 80ms ease;
+}
+
+/* Select option tap */
+.select-opt:active {
+  transform: scale(0.93);
+  transition: transform 80ms ease;
+}
+
+/* Pill button tap */
+.pill-btn:active {
+  transform: scale(0.9);
+  transition: transform 80ms ease;
+}
+
+/* ============================================
    Birth Control Selector
    ============================================ */
 

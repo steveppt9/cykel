@@ -7,6 +7,18 @@ import { zeroize } from './crypto.js';
 import { rebuildCycles, predict, fertilityWindow, cycleStats, fmtDate } from './prediction.js';
 
 // ============================================
+// Haptic feedback
+// ============================================
+
+function haptic(style = 'light') {
+  if (!navigator.vibrate) return;
+  if (style === 'light') navigator.vibrate(8);
+  else if (style === 'medium') navigator.vibrate(15);
+  else if (style === 'success') navigator.vibrate([10, 40, 10]);
+  else if (style === 'error') navigator.vibrate([30, 50, 30]);
+}
+
+// ============================================
 // Install prompt
 // ============================================
 
@@ -235,6 +247,7 @@ function createPinPadHandler(dotsId, padId, onComplete) {
   }
 
   function shake() {
+    haptic('error');
     const dots = dotsEl.querySelectorAll('.pin-dot');
     dots.forEach(d => d.classList.add('error'));
     setTimeout(() => {
@@ -246,6 +259,7 @@ function createPinPadHandler(dotsId, padId, onComplete) {
   padEl.addEventListener('click', (e) => {
     const btn = e.target.closest('.pin-key');
     if (!btn || btn.classList.contains('pin-key-empty')) return;
+    haptic();
 
     const key = btn.dataset.key;
     if (key === 'delete') {
@@ -888,7 +902,7 @@ function daysBetweenDates(a, b) {
   return Math.round((db - da) / 86400000);
 }
 
-document.getElementById('btn-dismiss-alert').addEventListener('click', async () => {
+async function dismissAlert() {
   const banner = document.getElementById('alert-banner');
   const doctorAlertId = banner.getAttribute('data-doctor-alert-id');
   if (doctorAlertId && appData) {
@@ -896,8 +910,50 @@ document.getElementById('btn-dismiss-alert').addEventListener('click', async () 
     appData.settings.dismissed_alerts[doctorAlertId] = fmtDate(new Date());
     await saveData();
   }
-  banner.classList.add('hidden');
-});
+  banner.classList.add('alert-dismiss-anim');
+  setTimeout(() => {
+    banner.classList.add('hidden');
+    banner.classList.remove('alert-dismiss-anim');
+    banner.style.transform = '';
+    banner.style.opacity = '';
+  }, 250);
+}
+
+document.getElementById('btn-dismiss-alert').addEventListener('click', dismissAlert);
+
+// Swipe-to-dismiss on alert banner
+(function() {
+  const banner = document.getElementById('alert-banner');
+  let startX = 0, currentX = 0, swiping = false;
+
+  banner.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    currentX = startX;
+    swiping = true;
+  }, { passive: true });
+
+  banner.addEventListener('touchmove', e => {
+    if (!swiping) return;
+    currentX = e.touches[0].clientX;
+    const dx = currentX - startX;
+    if (Math.abs(dx) > 10) {
+      banner.style.transform = `translateX(${dx}px)`;
+      banner.style.opacity = `${1 - Math.abs(dx) / 300}`;
+    }
+  }, { passive: true });
+
+  banner.addEventListener('touchend', () => {
+    if (!swiping) return;
+    swiping = false;
+    const dx = currentX - startX;
+    if (Math.abs(dx) > 80) {
+      dismissAlert();
+    } else {
+      banner.style.transform = '';
+      banner.style.opacity = '';
+    }
+  });
+})();
 
 document.getElementById('btn-dismiss-reminder').addEventListener('click', async () => {
   document.getElementById('reminder-prompt').classList.add('hidden');
@@ -1131,7 +1187,7 @@ function renderCalendar() {
     }
 
     if (symptomMap[dateStr]) cell.classList.add('has-symptoms');
-    cell.addEventListener('click', () => openDayLog(dateStr, log, symptomMap[dateStr]));
+    cell.addEventListener('click', () => { haptic(); openDayLog(dateStr, log, symptomMap[dateStr]); });
     calendarGrid.appendChild(cell);
   }
 }
@@ -1226,6 +1282,7 @@ function updateSexDriveVisibility() {
 document.getElementById('flow-buttons').addEventListener('click', e => {
   const btn = e.target.closest('.flow-opt');
   if (!btn) return;
+  haptic();
   selectedFlow = btn.dataset.flow;
   updateFlowButtons();
 });
@@ -1234,6 +1291,7 @@ document.getElementById('flow-buttons').addEventListener('click', e => {
 document.getElementById('mood-chips').addEventListener('click', e => {
   const chip = e.target.closest('.chip');
   if (!chip) return;
+  haptic();
   const mood = chip.dataset.mood;
   if (selectedMoods.has(mood)) selectedMoods.delete(mood);
   else selectedMoods.add(mood);
@@ -1243,6 +1301,7 @@ document.getElementById('mood-chips').addEventListener('click', e => {
 document.getElementById('symptom-chips').addEventListener('click', e => {
   const chip = e.target.closest('.chip');
   if (!chip) return;
+  haptic();
   const sym = chip.dataset.symptom;
   if (selectedSymptoms.has(sym)) selectedSymptoms.delete(sym);
   else selectedSymptoms.add(sym);
@@ -1310,6 +1369,7 @@ document.getElementById('exercise-buttons').addEventListener('click', e => {
 
 document.getElementById('btn-save-day').addEventListener('click', async () => {
   if (!selectedDate || !appData) return;
+  haptic('success');
 
   const logData = {
     date: selectedDate,
