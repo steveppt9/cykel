@@ -371,22 +371,49 @@
           <div class="log-section">
             <h3 class="section-label">Symptoms</h3>
             <div class="chip-grid" id="symptom-chips">
-              <button data-symptom="Cramps" class="chip">Cramps</button>
-              <button data-symptom="Headache" class="chip">Headache</button>
-              <button data-symptom="Backache" class="chip">Backache</button>
-              <button data-symptom="Bloating" class="chip">Bloating</button>
-              <button data-symptom="BreastTenderness" class="chip">Breast Tenderness</button>
-              <button data-symptom="Nausea" class="chip">Nausea</button>
-              <button data-symptom="Fatigue" class="chip">Fatigue</button>
-              <button data-symptom="Acne" class="chip">Acne</button>
-              <button data-symptom="HotFlashes" class="chip">Hot Flashes</button>
-              <button data-symptom="Dizziness" class="chip">Dizziness</button>
-              <button data-symptom="JointPain" class="chip">Joint Pain</button>
-              <button data-symptom="Insomnia" class="chip">Insomnia</button>
+              <div class="chip-category">
+                <span class="chip-cat-label">Pain</span>
+                <div class="chip-cat-row">
+                  <button data-symptom="Cramps" class="chip">Cramps</button>
+                  <button data-symptom="Headache" class="chip">Headache</button>
+                  <button data-symptom="Backache" class="chip">Backache</button>
+                  <button data-symptom="BreastPain" class="chip">Breast Pain</button>
+                  <button data-symptom="JointPain" class="chip">Joint Pain</button>
+                  <button data-symptom="PelvicPressure" class="chip">Pelvic Pressure</button>
+                </div>
+              </div>
+              <div class="chip-category">
+                <span class="chip-cat-label">Digestive</span>
+                <div class="chip-cat-row">
+                  <button data-symptom="Bloating" class="chip">Bloating</button>
+                  <button data-symptom="Nausea" class="chip">Nausea</button>
+                  <button data-symptom="Cravings" class="chip">Cravings</button>
+                  <button data-symptom="Diarrhea" class="chip">Diarrhea</button>
+                  <button data-symptom="Constipation" class="chip">Constipation</button>
+                  <button data-symptom="AppetiteChanges" class="chip">Appetite Changes</button>
+                </div>
+              </div>
+              <div class="chip-category">
+                <span class="chip-cat-label">Skin &amp; Body</span>
+                <div class="chip-cat-row">
+                  <button data-symptom="Acne" class="chip">Acne</button>
+                  <button data-symptom="HotFlashes" class="chip">Hot Flashes</button>
+                  <button data-symptom="Fatigue" class="chip">Fatigue</button>
+                  <button data-symptom="Dizziness" class="chip">Dizziness</button>
+                  <button data-symptom="Insomnia" class="chip">Insomnia</button>
+                </div>
+              </div>
+              <div class="chip-category">
+                <span class="chip-cat-label">Discharge</span>
+                <div class="chip-cat-row">
+                  <button data-symptom="HeavyDischarge" class="chip">Heavy Discharge</button>
+                  <button data-symptom="LightDischarge" class="chip">Light Discharge</button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="log-section">
-            <h3 class="section-label">Discharge</h3>
+            <h3 class="section-label">Discharge Texture</h3>
             <div class="select-row cols-6" id="discharge-buttons">
               <button data-val="None" class="select-opt">None</button>
               <button data-val="Dry" class="select-opt">Dry</button>
@@ -394,6 +421,15 @@
               <button data-val="Watery" class="select-opt">Watery</button>
               <button data-val="Sticky" class="select-opt">Sticky</button>
               <button data-val="EggWhite" class="select-opt">Egg White</button>
+            </div>
+            <h3 class="section-label section-label-sub">Color</h3>
+            <div class="select-row cols-6" id="discharge-color-buttons">
+              <button data-val="Clear" class="select-opt color-opt"><span class="color-dot color-clear"></span>Clear</button>
+              <button data-val="White" class="select-opt color-opt"><span class="color-dot color-white"></span>White</button>
+              <button data-val="Yellow" class="select-opt color-opt"><span class="color-dot color-yellow"></span>Yellow</button>
+              <button data-val="Brown" class="select-opt color-opt"><span class="color-dot color-brown"></span>Brown</button>
+              <button data-val="Green" class="select-opt color-opt"><span class="color-dot color-green"></span>Green</button>
+              <button data-val="Pink" class="select-opt color-opt"><span class="color-dot color-pink"></span>Pink</button>
             </div>
           </div>
           <div class="log-section">

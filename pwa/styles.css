@@ -1950,3 +1950,69 @@ input, textarea {
   gap: var(--s-lg);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
 }
+
+/* ============================================
+   Discharge Color Dots
+   ============================================ */
+
+.color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.color-clear { background: transparent; border: 1.5px solid var(--border); }
+.color-white { background: #F5F5F0; border: 1.5px solid var(--border); }
+.color-yellow { background: #F0E060; }
+.color-brown { background: #8B6F47; }
+.color-green { background: #6B9B5A; }
+.color-pink { background: #E8A0B0; }
+
+.color-opt.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.section-label-sub {
+  margin-top: var(--s-md);
+}
+
+/* ============================================
+   Symptom Categories
+   ============================================ */
+
+.chip-category {
+  margin-bottom: 12px;
+}
+
+.chip-cat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.chip-cat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ============================================
+   Doctor Alert Banner
+   ============================================ */
+
+.alert-banner.alert-doctor {
+  background: #FFF3E0;
+}
+
+.alert-banner.alert-doctor .alert-icon {
+  background: #E6890C;
+}

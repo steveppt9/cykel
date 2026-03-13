@@ -100,6 +100,7 @@ let showFertility = false;
 let appMode = 'tracking'; // 'tracking', 'ttc', 'pregnancy'
 let selectedMoods = new Set();
 let selectedDischarge = null;
+let selectedDischargeColor = null;
 let selectedSex = null;
 let selectedSexDrive = null;
 let selectedEnergy = null;
@@ -725,6 +726,8 @@ function checkAlerts() {
 
   banner.classList.add('hidden');
   banner.classList.remove('alert-fertile');
+  banner.classList.remove('alert-doctor');
+  banner.removeAttribute('data-doctor-alert-id');
   reminderPrompt.classList.add('hidden');
 
   if (!appData) return;
@@ -776,6 +779,96 @@ function checkAlerts() {
     }
   }
 
+  // Doctor alerts (lower priority — only show if no fertility/period alert)
+  if (!alertMsg) {
+    appData.settings.dismissed_alerts = appData.settings.dismissed_alerts || {};
+    const dismissed = appData.settings.dismissed_alerts;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgoStr = fmtDate(thirtyDaysAgo);
+
+    function isDismissed(alertId) {
+      return dismissed[alertId] && dismissed[alertId] >= thirtyDaysAgoStr;
+    }
+
+    let doctorAlertId = null;
+    let doctorMsg = null;
+
+    // Rule 1: Irregular cycles (2+ completed cycles <21 or >35 days)
+    if (!doctorMsg) {
+      const completed = appData.cycles.filter(c => c.end_date != null).sort((a, b) => a.start_date.localeCompare(b.start_date));
+      let irregularCount = 0;
+      for (let i = 1; i < completed.length; i++) {
+        const len = daysBetweenDates(completed[i - 1].start_date, completed[i].start_date);
+        if (len < 21 || len > 35) irregularCount++;
+      }
+      if (irregularCount >= 2 && !isDismissed('irregular_cycles')) {
+        doctorAlertId = 'irregular_cycles';
+        doctorMsg = 'Your cycles seem irregular \u2014 a doctor can help find out why';
+      }
+    }
+
+    // Rule 2: Long period (>7 days in last 3 months)
+    if (!doctorMsg) {
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      const threeMonthsAgoStr = fmtDate(threeMonthsAgo);
+      const recentCycles = appData.cycles.filter(c => c.end_date && c.start_date >= threeMonthsAgoStr);
+      const longPeriod = recentCycles.some(c => {
+        const periodLen = daysBetweenDates(c.start_date, c.end_date) + 1;
+        return periodLen > 7;
+      });
+      if (longPeriod && !isDismissed('long_period')) {
+        doctorAlertId = 'long_period';
+        doctorMsg = 'Your last period was longer than usual \u2014 worth mentioning to your doctor';
+      }
+    }
+
+    // Rule 3: Green/yellow discharge today or yesterday
+    if (!doctorMsg) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = fmtDate(yesterday);
+      const recentLogs = appData.day_logs.filter(l => l.date === today || l.date === yesterdayStr);
+      const unusualColor = recentLogs.some(l => l.discharge_color === 'Green' || l.discharge_color === 'Yellow');
+      if (unusualColor && !isDismissed('unusual_discharge')) {
+        doctorAlertId = 'unusual_discharge';
+        doctorMsg = 'Unusual discharge color \u2014 consider seeing your doctor';
+      }
+    }
+
+    // Rule 4: Late period >7 days
+    if (!doctorMsg && pred) {
+      const daysToPeriod = daysBetweenDates(today, pred.predicted_start);
+      if (daysToPeriod < -7 && !isDismissed('late_period_doctor')) {
+        doctorAlertId = 'late_period_doctor';
+        doctorMsg = 'Your period is over a week late \u2014 consider a pregnancy test or check with your doctor';
+      }
+    }
+
+    // Rule 5: Persistent nausea + late period
+    if (!doctorMsg && pred) {
+      const daysToPeriod = daysBetweenDates(today, pred.predicted_start);
+      if (daysToPeriod < 0) {
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const oneWeekAgoStr = fmtDate(oneWeekAgo);
+        const recentSymptoms = appData.symptoms.filter(s => s.date >= oneWeekAgoStr && s.date <= today && s.symptom_type === 'Nausea');
+        const nauseaDays = new Set(recentSymptoms.map(s => s.date)).size;
+        if (nauseaDays >= 3 && !isDismissed('nausea_late')) {
+          doctorAlertId = 'nausea_late';
+          doctorMsg = 'Nausea with a late period \u2014 you may want to take a pregnancy test';
+        }
+      }
+    }
+
+    if (doctorMsg) {
+      alertMsg = doctorMsg;
+      banner.setAttribute('data-doctor-alert-id', doctorAlertId);
+      banner.classList.add('alert-doctor');
+    }
+  }
+
   if (alertMsg) {
     alertText.textContent = alertMsg;
     if (isFertileAlert) banner.classList.add('alert-fertile');
@@ -794,8 +887,15 @@ function daysBetweenDates(a, b) {
   return Math.round((db - da) / 86400000);
 }
 
-document.getElementById('btn-dismiss-alert').addEventListener('click', () => {
-  document.getElementById('alert-banner').classList.add('hidden');
+document.getElementById('btn-dismiss-alert').addEventListener('click', async () => {
+  const banner = document.getElementById('alert-banner');
+  const doctorAlertId = banner.getAttribute('data-doctor-alert-id');
+  if (doctorAlertId && appData) {
+    appData.settings.dismissed_alerts = appData.settings.dismissed_alerts || {};
+    appData.settings.dismissed_alerts[doctorAlertId] = fmtDate(new Date());
+    await saveData();
+  }
+  banner.classList.add('hidden');
 });
 
 document.getElementById('btn-dismiss-reminder').addEventListener('click', async () => {
@@ -1064,6 +1164,7 @@ function openDayLog(dateStr, existingLog, existingSymptoms) {
   // New fields
   selectedMoods = new Set(existingLog?.moods || []);
   selectedDischarge = existingLog?.discharge || null;
+  selectedDischargeColor = existingLog?.discharge_color || null;
   selectedSex = existingLog?.sex || null;
   selectedSexDrive = existingLog?.sex_drive || null;
   selectedEnergy = existingLog?.energy || null;
@@ -1076,6 +1177,7 @@ function openDayLog(dateStr, existingLog, existingSymptoms) {
   updateSymptomChips();
 
   updateSelectRow('discharge-buttons', selectedDischarge);
+  updateSelectRow('discharge-color-buttons', selectedDischargeColor);
   updateSelectRow('sex-buttons', selectedSex);
   updateSexDriveVisibility();
   updatePillRow('drive-buttons', selectedSexDrive);
@@ -1154,6 +1256,14 @@ document.getElementById('discharge-buttons').addEventListener('click', e => {
   updateSelectRow('discharge-buttons', selectedDischarge);
 });
 
+// Discharge color (single-select)
+document.getElementById('discharge-color-buttons').addEventListener('click', e => {
+  const btn = e.target.closest('.select-opt');
+  if (!btn) return;
+  selectedDischargeColor = btn.dataset.val === selectedDischargeColor ? null : btn.dataset.val;
+  updateSelectRow('discharge-color-buttons', selectedDischargeColor);
+});
+
 // Sex (single-select)
 document.getElementById('sex-buttons').addEventListener('click', e => {
   const btn = e.target.closest('.select-opt');
@@ -1205,6 +1315,7 @@ document.getElementById('btn-save-day').addEventListener('click', async () => {
     flow_level: selectedFlow,
     moods: [...selectedMoods],
     discharge: selectedDischarge,
+    discharge_color: selectedDischargeColor,
     sex: selectedSex,
     sex_drive: selectedSexDrive,
     energy: selectedEnergy,
@@ -1314,10 +1425,13 @@ function renderCycleChart() {
 
 const SYMPTOM_NAME_MAP = {
   Cramps: 'Cramps', Headache: 'Headache', Backache: 'Backache',
-  Bloating: 'Bloating', BreastTenderness: 'Tenderness', Nausea: 'Nausea',
+  Bloating: 'Bloating', Nausea: 'Nausea',
   Fatigue: 'Fatigue', Acne: 'Acne', HotFlashes: 'Hot Flashes',
   Dizziness: 'Dizziness', JointPain: 'Joint Pain', Insomnia: 'Insomnia',
-  MoodLow: 'Mood Low', MoodHigh: 'Mood High'
+  BreastPain: 'Breast Pain', PelvicPressure: 'Pelvic Pressure',
+  Cravings: 'Cravings', Diarrhea: 'Diarrhea', Constipation: 'Constipation',
+  AppetiteChanges: 'Appetite Changes',
+  HeavyDischarge: 'Heavy Discharge', LightDischarge: 'Light Discharge'
 };
 
 function renderSymptomSummary() {
@@ -1439,7 +1553,7 @@ document.getElementById('btn-doctor-report').addEventListener('click', () => {
   const sixMonthsAgo = new Date(now);
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-  const reportNameMap = { BreastTenderness: 'Breast Tenderness', MoodLow: 'Mood Low', MoodHigh: 'Mood High', HotFlashes: 'Hot Flashes', JointPain: 'Joint Pain' };
+  const reportNameMap = { BreastPain: 'Breast Pain', PelvicPressure: 'Pelvic Pressure', HotFlashes: 'Hot Flashes', JointPain: 'Joint Pain', AppetiteChanges: 'Appetite Changes', HeavyDischarge: 'Heavy Discharge', LightDischarge: 'Light Discharge', Cravings: 'Cravings', Diarrhea: 'Diarrhea', Constipation: 'Constipation' };
 
   // Build cycle history rows
   let cycleRows = '';
@@ -1499,6 +1613,16 @@ document.getElementById('btn-doctor-report').addEventListener('click', () => {
     '<h2>Cycle History</h2>' +
     '<table><thead><tr><th>Start</th><th>End</th><th>Period</th><th>Cycle</th></tr></thead><tbody>' + cycleRows + '</tbody></table>' +
     '<h2>Common Symptoms</h2>' + symptomTags +
+    '<h2>Discharge Colors</h2>' + (() => {
+      const colorCounts = {};
+      appData.day_logs.forEach(log => {
+        if (log.discharge_color) colorCounts[log.discharge_color] = (colorCounts[log.discharge_color] || 0) + 1;
+      });
+      const colorEntries = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]);
+      return colorEntries.length
+        ? '<div class="tag-list">' + colorEntries.map(([c, n]) => '<span class="tag">' + c + ' (' + n + ')</span>').join('') + '</div>'
+        : '<p>No discharge colors logged yet.</p>';
+    })() +
     '<h2>Common Moods</h2>' + moodTags +
     '<p class="footer">Generated by Cykel \u00b7 ' + now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' \u00b7 Private & encrypted on-device tracker</p>' +
     '</body></html>');
