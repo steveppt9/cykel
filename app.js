@@ -896,6 +896,67 @@ function checkAlerts() {
   }
 }
 
+function renderPhaseCard() {
+  const card = document.getElementById('phase-card');
+  card.classList.add('hidden');
+  card.className = 'phase-card hidden';
+
+  if (!appData || appData.cycles.length === 0) return;
+  if (appMode === 'pregnancy') return;
+
+  const today = fmtDate(new Date());
+  const completed = appData.cycles
+    .filter(c => c.end_date != null)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+
+  if (completed.length < 1) return;
+
+  // Find the most recent cycle start
+  const lastCycle = completed[completed.length - 1];
+  const cycleDay = daysBetweenDates(lastCycle.start_date, today) + 1;
+
+  if (cycleDay < 1 || cycleDay > 60) return;
+
+  // Determine average cycle length and period length
+  const stats = cycleStats(appData.cycles);
+  const avgCycle = stats.avg_cycle_length || 28;
+  const avgPeriod = stats.avg_period_length || 5;
+  const ovulationDay = Math.round(avgCycle - 14);
+
+  let phaseName, phaseTip, phaseClass;
+
+  if (cycleDay <= avgPeriod) {
+    // Menstrual phase
+    phaseName = 'Period';
+    phaseClass = 'phase-period';
+    if (cycleDay <= 2) phaseTip = 'Rest up — your body is doing its thing';
+    else phaseTip = 'Energy may start coming back soon';
+  } else if (cycleDay <= ovulationDay - 3) {
+    // Follicular phase
+    phaseName = 'Follicular Phase';
+    phaseClass = 'phase-follicular';
+    phaseTip = 'Energy and mood tend to rise — good time to start new things';
+  } else if (cycleDay <= ovulationDay + 1) {
+    // Ovulation phase
+    phaseName = 'Ovulation Phase';
+    phaseClass = 'phase-ovulation';
+    phaseTip = 'Peak energy and confidence — most fertile days';
+  } else {
+    // Luteal phase
+    phaseName = 'Luteal Phase';
+    phaseClass = 'phase-luteal';
+    const daysLeft = Math.max(0, Math.round(avgCycle) - cycleDay);
+    if (daysLeft <= 3) phaseTip = 'Period may start soon — be kind to yourself';
+    else if (daysLeft <= 7) phaseTip = 'PMS symptoms might show up — totally normal';
+    else phaseTip = 'Progesterone is up — you might crave comfort and rest';
+  }
+
+  document.getElementById('phase-day-num').textContent = cycleDay;
+  document.getElementById('phase-name').textContent = `Day ${cycleDay} · ${phaseName}`;
+  document.getElementById('phase-tip').textContent = phaseTip;
+  card.className = `phase-card ${phaseClass}`;
+}
+
 function daysBetweenDates(a, b) {
   const da = new Date(a + 'T00:00:00');
   const db = new Date(b + 'T00:00:00');
@@ -1037,6 +1098,8 @@ document.getElementById('btn-next-month').addEventListener('click', () => {
 
 function renderCalendar() {
   if (!appData) return;
+
+  renderPhaseCard();
 
   monthTitle.textContent = MONTH_NAMES[currentMonth];
   monthYear.textContent = currentYear;
@@ -1187,6 +1250,24 @@ function renderCalendar() {
     }
 
     if (symptomMap[dateStr]) cell.classList.add('has-symptoms');
+
+    // Indicator dots
+    const dots = [];
+    if (hasFlow || hasSpotting) dots.push('day-dot-flow');
+    if (symptomMap[dateStr]) dots.push('day-dot-symptom');
+    if (log && log.moods && log.moods.length) dots.push('day-dot-mood');
+    if (log && log.sex && log.sex !== 'None') dots.push('day-dot-sex');
+    if (dots.length) {
+      const dotWrap = document.createElement('div');
+      dotWrap.className = 'day-dots';
+      dots.forEach(cls => {
+        const dot = document.createElement('div');
+        dot.className = `day-dot ${cls}`;
+        dotWrap.appendChild(dot);
+      });
+      cell.appendChild(dotWrap);
+    }
+
     cell.addEventListener('click', () => { haptic(); openDayLog(dateStr, log, symptomMap[dateStr]); });
     calendarGrid.appendChild(cell);
   }
