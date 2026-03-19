@@ -874,6 +874,76 @@ input, textarea {
   text-align: center;
 }
 
+/* Support / Lightning tip jar */
+.support-group {
+  background: var(--surface-glass);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.support-group::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -30%;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(123, 104, 196, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.support-label {
+  color: var(--fertile) !important;
+}
+
+.support-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--s-sm);
+}
+
+.lightning-address-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+  padding: var(--s-md) var(--s-lg);
+  background: rgba(123, 104, 196, 0.06);
+  border-radius: var(--r-md);
+  border: 1px solid rgba(123, 104, 196, 0.12);
+}
+
+.lightning-icon {
+  color: #F7931A;
+  flex-shrink: 0;
+  display: flex;
+}
+
+.lightning-addr {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.support-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: var(--s-sm);
+  line-height: 1.4;
+}
+
+.btn-copied {
+  color: var(--symptom) !important;
+}
+
 .danger-zone {
   background: var(--danger-bg);
   display: flex;
