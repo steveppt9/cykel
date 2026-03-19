@@ -1,27 +1,24 @@
 /* ============================================
-   Cykel — Design System v3
-   Nostr meets warm femininity — privacy, weird, easy
+   Cykel — Design System v2
+   Cash App meets warm, confident femininity
    ============================================ */
 
 :root {
   /* Core palette */
   --bg: #FAF6F1;
-  --surface: rgba(255, 255, 255, 0.72);
-  --surface-elevated: rgba(255, 255, 255, 0.85);
-  --surface-glass: rgba(255, 255, 255, 0.55);
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
   --text: #1A1714;
   --text-secondary: #6B6560;
   --text-tertiary: #A39E98;
-  --border: rgba(237, 232, 226, 0.6);
-  --border-subtle: rgba(242, 238, 234, 0.5);
-  --border-glow: rgba(196, 101, 74, 0.2);
+  --border: #EDE8E2;
+  --border-subtle: #F2EEEA;
 
   /* Brand */
   --accent: #C4654A;
   --accent-hover: #B35840;
   --accent-bg: rgba(196, 101, 74, 0.08);
   --accent-bg-strong: rgba(196, 101, 74, 0.15);
-  --accent-glow: rgba(196, 101, 74, 0.35);
 
   /* Semantic */
   --flow-spotting: #F0DDD7;
@@ -40,9 +37,6 @@
   --fertile-bg: rgba(123, 104, 196, 0.12);
   --fertile-bg-strong: rgba(123, 104, 196, 0.22);
   --fertile-peak: rgba(123, 104, 196, 0.30);
-  --fertile-glow: rgba(123, 104, 196, 0.4);
-  --mood: #7B8EC4;
-  --mood-bg: rgba(123, 142, 196, 0.15);
   --danger: #D44A4A;
   --danger-bg: rgba(212, 74, 74, 0.06);
 
@@ -56,19 +50,16 @@
   --s-3xl: 48px;
 
   /* Radius */
-  --r-sm: 12px;
-  --r-md: 16px;
-  --r-lg: 22px;
-  --r-xl: 28px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 24px;
   --r-full: 9999px;
 
   /* Motion */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --duration: 280ms;
   --duration-fast: 160ms;
-  --duration-slow: 500ms;
 }
 
 /* ============================================
@@ -95,28 +86,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-size: 16px;
   line-height: 1.4;
-}
-
-/* Ambient mesh gradient behind calendar */
-.screen-inner::before {
-  content: '';
-  position: fixed;
-  top: -30%;
-  left: -20%;
-  width: 140%;
-  height: 80%;
-  background:
-    radial-gradient(ellipse 50% 50% at 20% 50%, rgba(196, 101, 74, 0.06) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 60% at 80% 30%, rgba(123, 104, 196, 0.05) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 50% 80%, rgba(139, 168, 137, 0.04) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-  animation: meshDrift 20s ease-in-out infinite alternate;
-}
-
-@keyframes meshDrift {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  100% { transform: translate(3%, 2%) rotate(1deg); }
 }
 
 #app {
@@ -215,16 +184,9 @@ input, textarea {
   width: 56px;
   height: 56px;
   border-radius: var(--r-lg);
-  background: linear-gradient(135deg, var(--accent), #D4937E, #B07CC6);
-  background-size: 200% 200%;
+  background: linear-gradient(135deg, var(--accent), #D4937E);
   margin-bottom: var(--s-sm);
-  box-shadow: 0 8px 32px rgba(196, 101, 74, 0.3), 0 0 60px rgba(196, 101, 74, 0.15);
-  animation: brandShift 6s ease-in-out infinite alternate;
-}
-
-@keyframes brandShift {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
+  box-shadow: 0 8px 32px rgba(196, 101, 74, 0.25);
 }
 
 .wordmark {
@@ -363,8 +325,6 @@ input, textarea {
   align-items: center;
   justify-content: space-between;
   padding-bottom: var(--s-xl);
-  position: relative;
-  z-index: 1;
 }
 
 .month-label {
@@ -375,23 +335,18 @@ input, textarea {
 }
 
 .month-label h2 {
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
   text-transform: capitalize;
   color: var(--text);
-  background: linear-gradient(135deg, var(--text) 40%, var(--accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .month-year {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-tertiary);
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 1px;
 }
 
 .nav-arrow {
@@ -402,20 +357,15 @@ input, textarea {
   justify-content: center;
   border-radius: var(--r-full);
   color: var(--text-secondary);
-  transition: all var(--duration) var(--ease);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  background: var(--surface-glass);
+  transition: all var(--duration-fast) var(--ease);
 }
 
 .nav-arrow:hover {
-  background: var(--surface-elevated);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  background: var(--border-subtle);
 }
 
 .nav-arrow:active {
-  transform: scale(0.85);
-  transition: transform 80ms ease;
+  transform: scale(0.88);
 }
 
 /* ============================================
@@ -424,29 +374,21 @@ input, textarea {
 
 .cal-wrap {
   padding: 0 var(--s-xs);
-  position: relative;
-  z-index: 1;
 }
 
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  animation: calGridIn 400ms var(--ease) both;
-}
-
-@keyframes calGridIn {
-  from { opacity: 0; transform: scale(0.97); }
-  to { opacity: 1; transform: scale(1); }
+  gap: 3px;
 }
 
 .cal-dow {
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-tertiary);
   padding: var(--s-sm) 0 var(--s-md);
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
@@ -462,27 +404,16 @@ input, textarea {
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease);
   position: relative;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
 }
 
 .cal-day:active {
-  transform: scale(0.85);
-  transition: transform 80ms ease;
+  transform: scale(0.88);
 }
 
-/* Today — glowing ring */
+/* Today */
 .cal-day.is-today {
   font-weight: 800;
   color: var(--accent);
-  background: rgba(196, 101, 74, 0.06);
-  box-shadow: 0 0 0 2px var(--accent), 0 0 12px var(--accent-glow);
-  animation: todayPulse 3s ease-in-out infinite;
-}
-
-@keyframes todayPulse {
-  0%, 100% { box-shadow: 0 0 0 2px var(--accent), 0 0 12px var(--accent-glow); }
-  50% { box-shadow: 0 0 0 2px var(--accent), 0 0 20px var(--accent-glow), 0 0 40px rgba(196, 101, 74, 0.1); }
 }
 
 .cal-day.is-today::after {
@@ -500,30 +431,26 @@ input, textarea {
   pointer-events: none;
 }
 
-/* Flow states — gradients + inner glow */
+/* Flow states */
 .cal-day.flow-spotting {
-  background: linear-gradient(145deg, #F5E4DE, #EBCFC6);
+  background: var(--flow-spotting);
   color: var(--flow-spotting-text);
-  box-shadow: inset 0 1px 2px rgba(155, 107, 90, 0.1);
 }
 
 .cal-day.flow-light {
-  background: linear-gradient(145deg, #F0D8CE, #E4C0B4);
+  background: var(--flow-light);
   color: var(--flow-light-text);
-  box-shadow: inset 0 1px 2px rgba(139, 90, 74, 0.12);
 }
 
 .cal-day.flow-medium {
-  background: linear-gradient(145deg, #DA9F8C, #CE8770);
+  background: var(--flow-medium);
   color: var(--flow-medium-text);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(212, 147, 126, 0.3);
 }
 
 .cal-day.flow-heavy {
-  background: linear-gradient(145deg, #D0714E, #B85A3E);
+  background: var(--flow-heavy);
   color: var(--flow-heavy-text);
   font-weight: 700;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12), 0 2px 12px rgba(196, 101, 74, 0.35);
 }
 
 /* Symptoms indicator */
@@ -536,19 +463,16 @@ input, textarea {
   height: 6px;
   border-radius: var(--r-full);
   background: var(--symptom);
-  box-shadow: 0 0 4px rgba(139, 168, 137, 0.4);
 }
 
-/* Predicted — dashed border + soft bg */
+/* Predicted */
 .cal-day.is-predicted {
   background: var(--predicted);
-  border: 1.5px dashed rgba(196, 101, 74, 0.3);
 }
 
 .cal-day.is-predicted.flow-light,
 .cal-day.is-predicted.flow-medium,
 .cal-day.is-predicted.flow-heavy {
-  border: none;
   /* Flow takes priority over prediction bg */
 }
 
@@ -559,17 +483,12 @@ input, textarea {
 .prediction-card {
   margin-top: var(--s-xl);
   padding: var(--s-lg) var(--s-xl);
-  background: var(--surface-glass);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  background: var(--surface);
   border-radius: var(--r-lg);
   display: flex;
   align-items: center;
   gap: var(--s-lg);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
-  border: 1px solid var(--border);
-  position: relative;
-  z-index: 1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
 }
 
 .pred-icon {
@@ -960,34 +879,24 @@ input, textarea {
 }
 
 /* ============================================
-   Fertility Calendar States — Nostr purple glow
+   Fertility Calendar States
    ============================================ */
 
 .cal-day.is-fertile {
-  background: linear-gradient(145deg, rgba(123, 104, 196, 0.18), rgba(123, 104, 196, 0.28));
+  background: var(--fertile-bg-strong);
   color: var(--fertile);
-  box-shadow: 0 0 8px rgba(123, 104, 196, 0.15);
 }
 
 .cal-day.is-peak {
-  background: linear-gradient(145deg, rgba(123, 104, 196, 0.28), rgba(123, 104, 196, 0.38));
+  background: var(--fertile-peak);
   color: #5B48A4;
   font-weight: 700;
-  box-shadow: 0 0 12px var(--fertile-glow);
-  animation: fertilePulse 4s ease-in-out infinite;
 }
 
 .cal-day.is-ovulation {
-  background: linear-gradient(145deg, #8B78D0, #6A54B8);
+  background: var(--fertile);
   color: white;
   font-weight: 700;
-  box-shadow: 0 2px 12px var(--fertile-glow), 0 0 24px rgba(123, 104, 196, 0.2);
-  animation: fertilePulse 3s ease-in-out infinite;
-}
-
-@keyframes fertilePulse {
-  0%, 100% { box-shadow: 0 2px 8px rgba(123, 104, 196, 0.2); }
-  50% { box-shadow: 0 2px 16px rgba(123, 104, 196, 0.35), 0 0 30px rgba(123, 104, 196, 0.12); }
 }
 
 /* Flow overrides fertility */
@@ -997,7 +906,6 @@ input, textarea {
 .cal-day.flow-light.is-peak,
 .cal-day.flow-medium.is-peak,
 .cal-day.flow-heavy.is-peak {
-  animation: none;
   /* flow colors take priority */
 }
 
@@ -1008,17 +916,12 @@ input, textarea {
 .fertility-card {
   margin-top: var(--s-md);
   padding: var(--s-lg) var(--s-xl);
-  background: var(--surface-glass);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  background: var(--surface);
   border-radius: var(--r-lg);
   display: flex;
   align-items: center;
   gap: var(--s-lg);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
-  border: 1px solid var(--border);
-  position: relative;
-  z-index: 1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
 }
 
 .fert-icon {
@@ -1209,12 +1112,6 @@ input, textarea {
   padding: var(--s-3xl) var(--s-xl);
   color: var(--text-tertiary);
   font-size: 15px;
-}
-
-#stats-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-xl);
 }
 
 .stat-grid {
@@ -1701,760 +1598,3 @@ input, textarea {
   border-radius: var(--r-lg);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-
-/* ============================================
-   Mood Chips
-   ============================================ */
-
-#mood-chips .chip.active {
-  border-color: var(--mood);
-  background: var(--mood-bg);
-  color: #4A5A8B;
-  font-weight: 600;
-}
-
-/* ============================================
-   Select Row (discharge, sex)
-   ============================================ */
-
-.select-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--s-sm);
-}
-
-.select-row.cols-6 {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.select-opt {
-  padding: var(--s-sm) var(--s-xs);
-  border-radius: var(--r-md);
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  text-align: center;
-  transition: all var(--duration-fast) var(--ease);
-}
-
-.select-opt:active { transform: scale(0.94); }
-
-.select-opt.active {
-  border-color: var(--accent);
-  background: var(--accent-bg);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-/* ============================================
-   Sub-row (sex drive)
-   ============================================ */
-
-.sub-row {
-  margin-top: var(--s-md);
-  display: flex;
-  align-items: center;
-  gap: var(--s-md);
-}
-
-.sub-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  min-width: 40px;
-}
-
-/* ============================================
-   Pill Buttons (drive, lifestyle)
-   ============================================ */
-
-.pill-row {
-  display: flex;
-  gap: var(--s-sm);
-  flex: 1;
-}
-
-.pill-btn {
-  flex: 1;
-  padding: var(--s-sm) var(--s-xs);
-  border-radius: var(--r-full);
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  text-align: center;
-  transition: all var(--duration-fast) var(--ease);
-}
-
-.pill-btn:active { transform: scale(0.94); }
-
-.pill-btn.active {
-  border-color: var(--accent);
-  background: var(--accent-bg);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-/* ============================================
-   Lifestyle Grid
-   ============================================ */
-
-.lifestyle-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-md);
-}
-
-.lifestyle-row {
-  display: flex;
-  align-items: center;
-  gap: var(--s-md);
-}
-
-.lifestyle-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  min-width: 60px;
-}
-
-/* ============================================
-   Cycle Length Bar Chart
-   ============================================ */
-
-.cycle-chart {
-  background: var(--surface);
-  border-radius: var(--r-lg);
-  padding: var(--s-xl);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-
-.chart-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--s-sm);
-  height: 120px;
-  padding-top: var(--s-lg);
-}
-
-.chart-bar-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--s-xs);
-  height: 100%;
-  justify-content: flex-end;
-}
-
-.chart-bar {
-  width: 100%;
-  max-width: 40px;
-  background: var(--accent-bg-strong);
-  border-radius: var(--r-sm) var(--r-sm) 0 0;
-  min-height: 4px;
-  transition: height var(--duration) var(--ease);
-}
-
-.chart-bar-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.chart-bar-sub {
-  font-size: 10px;
-  color: var(--text-tertiary);
-  font-weight: 500;
-}
-
-/* ============================================
-   Pattern Summary (Symptoms, Moods)
-   ============================================ */
-
-.pattern-summary {
-  background: var(--surface);
-  border-radius: var(--r-lg);
-  padding: var(--s-xl);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-
-.pattern-bars {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-md);
-  padding-top: var(--s-md);
-}
-
-.pattern-row {
-  display: flex;
-  align-items: center;
-  gap: var(--s-md);
-}
-
-.pattern-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  min-width: 90px;
-}
-
-.pattern-track {
-  flex: 1;
-  height: 8px;
-  background: var(--border-subtle);
-  border-radius: var(--r-full);
-  overflow: hidden;
-}
-
-.pattern-fill {
-  height: 100%;
-  border-radius: var(--r-full);
-  background: var(--symptom);
-  transition: width var(--duration) var(--ease);
-}
-
-.pattern-fill.mood-fill {
-  background: var(--mood);
-}
-
-.pattern-count {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  min-width: 24px;
-  text-align: right;
-}
-
-/* ============================================
-   Report Section
-   ============================================ */
-
-.report-section {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-sm);
-  align-items: center;
-}
-
-.report-hint {
-  font-size: 13px;
-  color: var(--text-tertiary);
-}
-
-/* ============================================
-   Mode Selector
-   ============================================ */
-
-.mode-selector {
-  display: flex;
-  gap: var(--s-xs);
-  background: var(--border-subtle);
-  border-radius: var(--r-full);
-  padding: 3px;
-}
-
-.mode-btn {
-  padding: var(--s-sm) var(--s-md);
-  border-radius: var(--r-full);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  transition: all var(--duration-fast) var(--ease);
-  white-space: nowrap;
-}
-
-.mode-btn.active {
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-
-/* ============================================
-   Pregnancy Card
-   ============================================ */
-
-.pregnancy-card {
-  margin-top: var(--s-xl);
-  padding: var(--s-xl);
-  background: var(--surface-glass);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border-radius: var(--r-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--s-xl);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
-  border: 1px solid var(--border);
-  position: relative;
-  z-index: 1;
-}
-
-.preg-week {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 56px;
-}
-
-.preg-week-num {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.preg-week-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.preg-body {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.preg-status {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.preg-due {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-/* ============================================
-   TTC Card (reuses pred-body styles)
-   ============================================ */
-
-.ttc-card {
-  margin-top: var(--s-md);
-  padding: var(--s-lg) var(--s-xl);
-  background: var(--surface-glass);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border-radius: var(--r-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--s-lg);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
-  border: 1px solid var(--border);
-  position: relative;
-  z-index: 1;
-}
-
-/* ============================================
-   Discharge Color Dots
-   ============================================ */
-
-.color-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 4px;
-  vertical-align: middle;
-}
-
-.color-clear { background: transparent; border: 1.5px solid var(--border); }
-.color-white { background: #F5F5F0; border: 1.5px solid var(--border); }
-.color-yellow { background: #F0E060; }
-.color-brown { background: #8B6F47; }
-.color-green { background: #6B9B5A; }
-.color-pink { background: #E8A0B0; }
-
-.color-opt.active {
-  border-color: var(--accent);
-  background: var(--accent-bg);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.section-label-sub {
-  margin-top: var(--s-md);
-}
-
-/* ============================================
-   Symptom Categories
-   ============================================ */
-
-.chip-category {
-  margin-bottom: 12px;
-}
-
-.chip-cat-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-tertiary);
-  margin-bottom: 6px;
-  display: block;
-}
-
-.chip-cat-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* ============================================
-   Doctor Alert Banner
-   ============================================ */
-
-.alert-banner.alert-doctor {
-  background: #FFF3E0;
-}
-
-.alert-banner.alert-doctor .alert-icon {
-  background: #E6890C;
-}
-
-/* ============================================
-   Polish — Micro-interactions
-   ============================================ */
-
-/* Alert dismiss animation */
-.alert-dismiss-anim {
-  animation: slideOutRight 250ms var(--ease) forwards;
-}
-
-@keyframes slideOutRight {
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-}
-
-/* Card entrance (prediction, fertility, pregnancy, ttc) */
-.prediction-card,
-.fertility-card,
-.pregnancy-card,
-.ttc-card {
-  animation: cardIn 450ms var(--ease-bounce) both;
-}
-
-@keyframes cardIn {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Stagger card entrances */
-.fertility-card { animation-delay: 80ms; }
-.pregnancy-card { animation-delay: 120ms; }
-.ttc-card { animation-delay: 160ms; }
-
-/* Chip tap pop */
-.chip:active {
-  transform: scale(0.92);
-}
-
-.chip.active {
-  transition: all var(--duration-fast) var(--ease);
-}
-
-/* Flow button pop */
-.flow-opt:active .flow-circle {
-  transform: scale(0.85);
-  transition: transform 100ms ease;
-}
-
-/* Calendar day press */
-.cal-day:not(.is-empty):active {
-  transform: scale(0.85);
-  transition: transform 80ms ease;
-  filter: brightness(0.95);
-}
-
-/* Pin key tactile press */
-.pin-key:active {
-  transform: scale(0.85);
-  background: var(--accent-bg-strong);
-  transition: all 80ms ease;
-}
-
-/* Save button success flash */
-.save-btn:active {
-  transform: scale(0.95);
-  background: var(--symptom);
-  transition: all 100ms ease;
-}
-
-/* Smooth alert banner transitions for swipe */
-.alert-banner {
-  transition: transform 60ms linear, opacity 60ms linear;
-  will-change: transform, opacity;
-}
-
-/* BC option tap */
-.bc-opt:active {
-  transform: scale(0.93);
-  transition: transform 80ms ease;
-}
-
-/* Select option tap */
-.select-opt:active {
-  transform: scale(0.93);
-  transition: transform 80ms ease;
-}
-
-/* Pill button tap */
-.pill-btn:active {
-  transform: scale(0.9);
-  transition: transform 80ms ease;
-}
-
-/* ============================================
-   Birth Control Selector
-   ============================================ */
-
-.bc-selector {
-  padding: var(--s-md) 0;
-}
-
-.bc-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--s-sm);
-  margin-bottom: var(--s-md);
-}
-
-.bc-opt {
-  padding: var(--s-sm) var(--s-md);
-  border-radius: var(--r-full);
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--duration) var(--ease);
-  text-align: center;
-}
-
-.bc-opt.active {
-  border-color: var(--accent);
-  background: var(--accent-bg);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.bc-date-row {
-  display: flex;
-  align-items: center;
-  gap: var(--s-md);
-  margin-bottom: var(--s-md);
-}
-
-.bc-date-label {
-  font-size: 13px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-.bc-date-input {
-  flex: 1;
-  padding: var(--s-sm) var(--s-md);
-  border-radius: var(--r-sm);
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 14px;
-  font-family: inherit;
-}
-
-.btn-sm {
-  padding: var(--s-sm) var(--s-xl);
-  font-size: 14px;
-  min-height: 40px;
-}
-
-.bc-history-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-sm);
-  margin-top: var(--s-sm);
-}
-
-.bc-history-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--s-sm) var(--s-md);
-  background: var(--surface-elevated);
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border-subtle);
-  font-size: 13px;
-}
-
-.bc-history-method {
-  font-weight: 600;
-  color: var(--text);
-}
-
-.bc-history-dates {
-  color: var(--text-tertiary);
-  font-size: 12px;
-}
-
-/* ============================================
-   Import Preview Modal
-   ============================================ */
-
-.import-preview {
-  padding: var(--s-lg);
-}
-
-.import-stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: var(--s-sm) 0;
-  border-bottom: 1px solid var(--border-subtle);
-  font-size: 14px;
-}
-
-.import-stat-label {
-  color: var(--text-secondary);
-}
-
-.import-stat-value {
-  font-weight: 600;
-  color: var(--text);
-}
-
-/* ============================================
-   Cycle Phase Card
-   ============================================ */
-
-.phase-card {
-  display: flex;
-  align-items: center;
-  gap: var(--s-md);
-  padding: var(--s-md) var(--s-lg);
-  margin: 0 0 var(--s-md);
-  background: var(--surface-glass);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border-radius: var(--r-lg);
-  border: 1px solid var(--border);
-  animation: cardIn 450ms var(--ease-bounce) both;
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-}
-
-/* Phase card colored accent line */
-.phase-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--accent);
-  border-radius: 3px 0 0 3px;
-}
-
-.phase-day-ring {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: 2.5px solid var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-  transition: all var(--duration) var(--ease);
-}
-
-.phase-day-num {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.phase-body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.phase-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.2px;
-}
-
-.phase-tip {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  line-height: 1.3;
-}
-
-/* Phase ring color variants + accent line */
-.phase-card.phase-period .phase-day-ring { border-color: var(--flow-medium); box-shadow: 0 0 10px rgba(212, 147, 126, 0.3); }
-.phase-card.phase-period .phase-day-num { color: var(--flow-medium); }
-.phase-card.phase-period::before { background: var(--flow-medium); }
-
-.phase-card.phase-follicular .phase-day-ring { border-color: #5B9BD5; box-shadow: 0 0 10px rgba(91, 155, 213, 0.3); }
-.phase-card.phase-follicular .phase-day-num { color: #5B9BD5; }
-.phase-card.phase-follicular::before { background: #5B9BD5; }
-
-.phase-card.phase-ovulation .phase-day-ring { border-color: var(--fertile); box-shadow: 0 0 12px var(--fertile-glow); }
-.phase-card.phase-ovulation .phase-day-num { color: var(--fertile); }
-.phase-card.phase-ovulation::before { background: var(--fertile); }
-
-.phase-card.phase-luteal .phase-day-ring { border-color: #B07CC6; box-shadow: 0 0 10px rgba(176, 124, 198, 0.3); }
-.phase-card.phase-luteal .phase-day-num { color: #B07CC6; }
-.phase-card.phase-luteal::before { background: #B07CC6; }
-
-/* ============================================
-   Calendar Day Indicator Dots
-   ============================================ */
-
-.cal-day {
-  position: relative;
-}
-
-.day-dots {
-  display: flex;
-  justify-content: center;
-  gap: 2.5px;
-  position: absolute;
-  bottom: 3px;
-  left: 0;
-  right: 0;
-}
-
-.day-dot {
-  width: 4.5px;
-  height: 4.5px;
-  border-radius: 50%;
-}
-
-.day-dot-flow { background: var(--flow-medium); box-shadow: 0 0 3px rgba(212, 147, 126, 0.5); }
-.day-dot-symptom { background: var(--symptom); box-shadow: 0 0 3px rgba(139, 168, 137, 0.5); }
-.day-dot-mood { background: #B07CC6; box-shadow: 0 0 3px rgba(176, 124, 198, 0.5); }
-.day-dot-sex { background: #E8A0B0; box-shadow: 0 0 3px rgba(232, 160, 176, 0.5); }
