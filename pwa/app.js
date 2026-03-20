@@ -5,6 +5,7 @@
 import * as storage from './storage.js';
 import { zeroize } from './crypto.js';
 import { rebuildCycles, predict, fertilityWindow, cycleStats, fmtDate } from './prediction.js';
+import { pandaKB, DISCLAIMER } from './panda-kb.js';
 
 // ============================================
 // Haptic feedback
@@ -2247,6 +2248,258 @@ function showModal(title, message, confirmLabel, onConfirm, destructive = false)
     if (e.target === overlay) close();
   });
 }
+
+// ============================================
+// Period Panda — Chat
+// ============================================
+
+const PANDA_SVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <g class="panda-body">
+    <!-- Ears -->
+    <circle cx="24" cy="24" r="14" fill="#2D2D2D"/>
+    <circle cx="76" cy="24" r="14" fill="#2D2D2D"/>
+    <circle cx="24" cy="24" r="7" fill="#E8A0B0" opacity="0.6"/>
+    <circle cx="76" cy="24" r="7" fill="#E8A0B0" opacity="0.6"/>
+    <!-- Head -->
+    <circle cx="50" cy="52" r="38" fill="#2D2D2D"/>
+    <!-- Face -->
+    <ellipse cx="50" cy="56" rx="28" ry="26" fill="#F5F0EB"/>
+    <!-- Eye patches -->
+    <ellipse cx="36" cy="48" rx="12" ry="10" fill="#2D2D2D"/>
+    <ellipse cx="64" cy="48" rx="12" ry="10" fill="#2D2D2D"/>
+    <!-- Eyes (blink targets) -->
+    <g class="panda-eyes">
+      <ellipse cx="36" cy="48" rx="5" ry="5.5" fill="#F5F0EB"/>
+      <ellipse cx="64" cy="48" rx="5" ry="5.5" fill="#F5F0EB"/>
+      <circle class="panda-pupil-l" cx="37" cy="48" r="2.8" fill="#2D2D2D"/>
+      <circle class="panda-pupil-r" cx="65" cy="48" r="2.8" fill="#2D2D2D"/>
+      <!-- Sparkle dots (hidden by default, shown in happy state) -->
+      <circle class="panda-sparkle" cx="34" cy="45" r="1.2" fill="white" opacity="0"/>
+      <circle class="panda-sparkle" cx="62" cy="45" r="1.2" fill="white" opacity="0"/>
+    </g>
+    <!-- Nose -->
+    <ellipse cx="50" cy="57" rx="4" ry="2.8" fill="#2D2D2D"/>
+    <!-- Mouth -->
+    <path d="M46 61 Q50 65 54 61" fill="none" stroke="#2D2D2D" stroke-width="1.5" stroke-linecap="round" class="panda-mouth"/>
+    <!-- Cheeks -->
+    <circle cx="28" cy="60" r="5.5" fill="#E8A0B0" opacity="0.35"/>
+    <circle cx="72" cy="60" r="5.5" fill="#E8A0B0" opacity="0.35"/>
+  </g>
+</svg>`;
+
+const PANDA_SVG_MINI = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <g class="panda-body">
+    <circle cx="24" cy="24" r="14" fill="#2D2D2D"/>
+    <circle cx="76" cy="24" r="14" fill="#2D2D2D"/>
+    <circle cx="24" cy="24" r="7" fill="#E8A0B0" opacity="0.6"/>
+    <circle cx="76" cy="24" r="7" fill="#E8A0B0" opacity="0.6"/>
+    <circle cx="50" cy="52" r="38" fill="#2D2D2D"/>
+    <ellipse cx="50" cy="56" rx="28" ry="26" fill="#F5F0EB"/>
+    <ellipse cx="36" cy="48" rx="12" ry="10" fill="#2D2D2D"/>
+    <ellipse cx="64" cy="48" rx="12" ry="10" fill="#2D2D2D"/>
+    <g class="panda-eyes">
+      <ellipse cx="36" cy="48" rx="5" ry="5.5" fill="#F5F0EB"/>
+      <ellipse cx="64" cy="48" rx="5" ry="5.5" fill="#F5F0EB"/>
+      <circle cx="37" cy="48" r="2.8" fill="#2D2D2D"/>
+      <circle cx="65" cy="48" r="2.8" fill="#2D2D2D"/>
+    </g>
+    <ellipse cx="50" cy="57" rx="4" ry="2.8" fill="#2D2D2D"/>
+    <path d="M46 61 Q50 65 54 61" fill="none" stroke="#2D2D2D" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="28" cy="60" r="5.5" fill="#E8A0B0" opacity="0.35"/>
+    <circle cx="72" cy="60" r="5.5" fill="#E8A0B0" opacity="0.35"/>
+  </g>
+</svg>`;
+
+let pandaChatOpen = false;
+
+function pandaSuggestions() {
+  // Pick 6 random questions from the KB
+  const shuffled = [...pandaKB].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 6);
+}
+
+function matchPandaAnswer(query) {
+  const words = query.toLowerCase().replace(/[?.,!'"]/g, '').split(/\s+/).filter(w => w.length > 2);
+  let bestScore = 0;
+  let bestEntry = null;
+
+  for (const entry of pandaKB) {
+    let score = 0;
+    for (const word of words) {
+      for (const kw of entry.keywords) {
+        if (kw === word) score += 3;
+        else if (kw.includes(word) || word.includes(kw)) score += 1.5;
+      }
+    }
+    // Boost if query words appear in the question text
+    const qLower = entry.q.toLowerCase();
+    for (const word of words) {
+      if (qLower.includes(word)) score += 0.5;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestEntry = entry;
+    }
+  }
+
+  if (bestScore >= 2 && bestEntry) return bestEntry.answer;
+  return "hmm, i'm not sure about that one. try asking about periods, cramps, discharge, fertility, birth control, or when to see a doctor — i've got you on those topics.";
+}
+
+function openPandaChat() {
+  if (pandaChatOpen) return;
+  pandaChatOpen = true;
+  haptic('light');
+
+  const suggestions = pandaSuggestions();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'panda-overlay';
+  overlay.innerHTML = `
+    <div class="panda-sheet">
+      <div class="panda-handle"></div>
+      <div class="panda-header">
+        <div class="panda-header-avatar panda-anim-idle">${PANDA_SVG_MINI}</div>
+        <span class="panda-title">Period Panda</span>
+        <button class="panda-close" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="panda-disclaimer">${DISCLAIMER}</div>
+      <div class="panda-messages">
+        <div class="panda-welcome">
+          <div class="panda-welcome-avatar panda-anim-wave">${PANDA_SVG}</div>
+          <div class="panda-welcome-title">hey, i'm period panda</div>
+          <div class="panda-welcome-sub">ask me anything about your cycle, symptoms, discharge, fertility, or just how your body works. no judgement, no data leaves your phone.</div>
+        </div>
+      </div>
+      <div class="panda-suggestions">${suggestions.map(s => `<button class="panda-chip">${s.q}</button>`).join('')}</div>
+      <div class="panda-input-row">
+        <input type="text" class="panda-input" placeholder="ask period panda..." maxlength="200" />
+        <button class="panda-send" aria-label="Send">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('app').appendChild(overlay);
+
+  // Animate in
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      overlay.classList.add('panda-visible');
+    });
+  });
+
+  const messagesEl = overlay.querySelector('.panda-messages');
+  const suggestionsEl = overlay.querySelector('.panda-suggestions');
+  const inputEl = overlay.querySelector('.panda-input');
+  const sendBtn = overlay.querySelector('.panda-send');
+  const headerAvatar = overlay.querySelector('.panda-header-avatar');
+
+  function closePanda() {
+    overlay.classList.remove('panda-visible');
+    setTimeout(() => {
+      overlay.remove();
+      pandaChatOpen = false;
+    }, 500);
+  }
+
+  function addMessage(text, isUser) {
+    // Remove welcome on first message
+    const welcome = messagesEl.querySelector('.panda-welcome');
+    if (welcome) welcome.remove();
+
+    const msg = document.createElement('div');
+    msg.className = `panda-msg ${isUser ? 'panda-msg-user' : 'panda-msg-panda'}`;
+    if (!isUser) {
+      msg.innerHTML = `<span class="panda-msg-avatar">🐼</span>${text}`;
+    } else {
+      msg.textContent = text;
+    }
+    messagesEl.appendChild(msg);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function showTyping() {
+    const typing = document.createElement('div');
+    typing.className = 'panda-typing';
+    typing.innerHTML = '<div class="panda-typing-dot"></div><div class="panda-typing-dot"></div><div class="panda-typing-dot"></div>';
+    messagesEl.appendChild(typing);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    headerAvatar.classList.remove('panda-anim-idle');
+    headerAvatar.classList.add('panda-anim-thinking');
+    return typing;
+  }
+
+  function sendMessage(text) {
+    if (!text.trim()) return;
+    addMessage(text, true);
+    haptic('light');
+
+    // Hide suggestions after first message, show related ones later
+    suggestionsEl.innerHTML = '';
+
+    const typing = showTyping();
+
+    // Simulate thinking time
+    const delay = 300 + Math.random() * 400;
+    setTimeout(() => {
+      typing.remove();
+      const answer = matchPandaAnswer(text);
+      addMessage(answer, false);
+      haptic('success');
+
+      // Switch to happy state briefly
+      headerAvatar.classList.remove('panda-anim-thinking');
+      headerAvatar.classList.add('panda-anim-happy');
+      setTimeout(() => {
+        headerAvatar.classList.remove('panda-anim-happy');
+        headerAvatar.classList.add('panda-anim-idle');
+      }, 1500);
+
+      // Show new suggestions
+      const newSuggestions = pandaSuggestions();
+      suggestionsEl.innerHTML = newSuggestions.map(s => `<button class="panda-chip">${s.q}</button>`).join('');
+    }, delay);
+
+    inputEl.value = '';
+    if (typeof resetAutoLock === 'function') resetAutoLock();
+  }
+
+  // Event listeners
+  overlay.querySelector('.panda-close').addEventListener('click', closePanda);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closePanda();
+  });
+
+  sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage(inputEl.value);
+  });
+
+  // Suggestion chip clicks (event delegation)
+  suggestionsEl.addEventListener('click', (e) => {
+    const chip = e.target.closest('.panda-chip');
+    if (chip) {
+      haptic('light');
+      sendMessage(chip.textContent);
+    }
+  });
+
+  // Swipe down to close
+  let startY = 0;
+  const header = overlay.querySelector('.panda-header');
+  header.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; });
+  header.addEventListener('touchend', (e) => {
+    const diff = e.changedTouches[0].clientY - startY;
+    if (diff > 60) closePanda();
+  });
+}
+
+// FAB click
+document.getElementById('btn-panda').addEventListener('click', openPandaChat);
 
 // ============================================
 // Boot

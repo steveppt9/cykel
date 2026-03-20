@@ -4,7 +4,7 @@
 // Zero network calls after first load.
 // ============================================
 
-const CACHE_NAME = 'cykel-v16';
+const CACHE_NAME = 'cykel-v17';
 const ASSETS = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
   './crypto.js',
   './storage.js',
   './prediction.js',
+  './panda-kb.js',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
