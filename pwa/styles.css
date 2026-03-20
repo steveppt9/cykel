@@ -2528,3 +2528,445 @@ input, textarea {
 .day-dot-symptom { background: var(--symptom); box-shadow: 0 0 3px rgba(139, 168, 137, 0.5); }
 .day-dot-mood { background: #B07CC6; box-shadow: 0 0 3px rgba(176, 124, 198, 0.5); }
 .day-dot-sex { background: #E8A0B0; box-shadow: 0 0 3px rgba(232, 160, 176, 0.5); }
+
+/* ============================================
+   Period Panda — FAB
+   ============================================ */
+
+.panda-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--r-full);
+  background: var(--surface-glass);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 0 16px rgba(123, 104, 196, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: all var(--duration) var(--ease);
+  animation: pandaBob 3s ease-in-out infinite;
+  padding: 8px;
+}
+
+.panda-fab-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.panda-fab:active {
+  transform: scale(0.85);
+  animation: none;
+}
+
+@keyframes pandaBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ============================================
+   Period Panda — SVG Animations
+   ============================================ */
+
+/* Blink animation on eyes */
+.panda-eyes {
+  animation: pandaBlink 4s ease-in-out infinite;
+}
+
+@keyframes pandaBlink {
+  0%, 92%, 100% { transform: scaleY(1); transform-origin: center 48px; }
+  95% { transform: scaleY(0.05); transform-origin: center 48px; }
+}
+
+/* Idle state — gentle breathing on body */
+.panda-anim-idle .panda-body {
+  animation: pandaBreath 3.5s ease-in-out infinite;
+}
+
+@keyframes pandaBreath {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.5px); }
+}
+
+/* Thinking state — pupils look up, body wiggles */
+.panda-anim-thinking .panda-pupil-l,
+.panda-anim-thinking .panda-pupil-r {
+  animation: pandaLookUp 1.5s ease-in-out infinite;
+}
+
+@keyframes pandaLookUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5px); }
+}
+
+.panda-anim-thinking .panda-body {
+  animation: pandaWiggle 0.8s ease-in-out infinite;
+}
+
+@keyframes pandaWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-2deg); }
+  75% { transform: rotate(2deg); }
+}
+
+/* Happy state — eyes widen, sparkle, bounce */
+.panda-anim-happy .panda-eyes {
+  animation: pandaHappyEyes 0.6s var(--ease-bounce) both;
+}
+
+@keyframes pandaHappyEyes {
+  0% { transform: scaleY(1) scaleX(1); transform-origin: center 48px; }
+  50% { transform: scaleY(1.15) scaleX(1.1); transform-origin: center 48px; }
+  100% { transform: scaleY(1.05) scaleX(1.05); transform-origin: center 48px; }
+}
+
+.panda-anim-happy .panda-sparkle {
+  animation: pandaSparkle 1.2s ease-in-out infinite;
+}
+
+@keyframes pandaSparkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  30%, 70% { opacity: 1; transform: scale(1.2); }
+}
+
+.panda-anim-happy .panda-body {
+  animation: pandaHappyBounce 0.5s var(--ease-bounce) both;
+}
+
+@keyframes pandaHappyBounce {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+
+/* Wave state (welcome) — tilt side to side */
+.panda-anim-wave .panda-body {
+  animation: pandaWave 1.5s var(--ease) both;
+}
+
+@keyframes pandaWave {
+  0% { transform: rotate(0deg) scale(0.8); opacity: 0; }
+  30% { transform: rotate(-5deg) scale(1.02); opacity: 1; }
+  50% { transform: rotate(5deg) scale(1); }
+  70% { transform: rotate(-2deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Panda avatar sizes */
+.panda-header-avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  margin-right: var(--s-sm);
+}
+
+.panda-header-avatar svg {
+  width: 100%;
+  height: 100%;
+}
+
+.panda-welcome-avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--s-md);
+}
+
+.panda-welcome-avatar svg {
+  width: 100%;
+  height: 100%;
+}
+
+.panda-msg-avatar {
+  font-size: 14px;
+  margin-right: 4px;
+}
+
+/* ============================================
+   Period Panda — Chat Sheet
+   ============================================ */
+
+.panda-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0);
+  transition: background var(--duration) var(--ease-smooth);
+}
+
+.panda-overlay.panda-visible {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.panda-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 430px;
+  margin: 0 auto;
+  height: 75vh;
+  max-height: 75vh;
+  background: var(--surface-elevated);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: 0 -4px 30px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform var(--duration-slow) var(--ease);
+  z-index: 1001;
+}
+
+.panda-overlay.panda-visible .panda-sheet {
+  transform: translateY(0);
+}
+
+.panda-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--border);
+  margin: var(--s-sm) auto 0;
+  flex-shrink: 0;
+}
+
+.panda-header {
+  display: flex;
+  align-items: center;
+  padding: var(--s-md) var(--s-lg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panda-avatar {
+  font-size: 24px;
+  line-height: 1;
+  margin-right: var(--s-sm);
+}
+
+.panda-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.panda-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.panda-close:active {
+  transform: scale(0.85);
+  background: var(--border-subtle);
+}
+
+.panda-disclaimer {
+  padding: var(--s-sm) var(--s-lg);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   Period Panda — Messages
+   ============================================ */
+
+.panda-messages {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--s-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+}
+
+.panda-msg {
+  max-width: 85%;
+  padding: var(--s-md) var(--s-lg);
+  font-size: 14px;
+  line-height: 1.55;
+  animation: msgIn 300ms var(--ease-bounce) both;
+}
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.panda-msg-user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: white;
+  border-radius: var(--r-lg) var(--r-lg) var(--s-xs) var(--r-lg);
+}
+
+.panda-msg-panda {
+  align-self: flex-start;
+  background: var(--surface-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg) var(--r-lg) var(--r-lg) var(--s-xs);
+  color: var(--text);
+}
+
+.panda-msg-panda .panda-msg-avatar {
+  font-size: 16px;
+  margin-bottom: var(--s-xs);
+  display: block;
+}
+
+/* Typing indicator */
+.panda-typing {
+  align-self: flex-start;
+  display: flex;
+  gap: 4px;
+  padding: var(--s-md) var(--s-lg);
+  background: var(--surface-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg) var(--r-lg) var(--r-lg) var(--s-xs);
+  animation: msgIn 200ms var(--ease) both;
+}
+
+.panda-typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  animation: typingBounce 1.2s ease-in-out infinite;
+}
+
+.panda-typing-dot:nth-child(2) { animation-delay: 150ms; }
+.panda-typing-dot:nth-child(3) { animation-delay: 300ms; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ============================================
+   Period Panda — Suggestions
+   ============================================ */
+
+.panda-suggestions {
+  padding: var(--s-sm) var(--s-lg) var(--s-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+  flex-shrink: 0;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.panda-chip {
+  padding: var(--s-sm) var(--s-md);
+  border-radius: var(--r-full);
+  background: rgba(123, 104, 196, 0.08);
+  color: var(--fertile);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid rgba(123, 104, 196, 0.15);
+  transition: all var(--duration-fast) var(--ease);
+  white-space: nowrap;
+}
+
+.panda-chip:active {
+  transform: scale(0.92);
+  background: rgba(123, 104, 196, 0.18);
+}
+
+/* ============================================
+   Period Panda — Input
+   ============================================ */
+
+.panda-input-row {
+  display: flex;
+  gap: var(--s-sm);
+  padding: var(--s-md) var(--s-lg);
+  padding-bottom: max(var(--s-md), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panda-input {
+  flex: 1;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border);
+  padding: var(--s-sm) var(--s-lg);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease);
+}
+
+.panda-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.panda-input:focus {
+  border-color: var(--fertile);
+  box-shadow: 0 0 0 3px rgba(123, 104, 196, 0.1);
+}
+
+.panda-send {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-full);
+  background: var(--fertile);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.panda-send:active {
+  transform: scale(0.85);
+}
+
+.panda-send:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Welcome message */
+.panda-welcome {
+  text-align: center;
+  padding: var(--s-xl) var(--s-lg);
+}
+
+.panda-welcome-emoji {
+  font-size: 48px;
+  margin-bottom: var(--s-md);
+  display: block;
+}
+
+.panda-welcome-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: var(--s-xs);
+}
+
+.panda-welcome-sub {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
