@@ -2019,6 +2019,207 @@ input, textarea {
 }
 
 /* ============================================
+   Doctor Report Overlay
+   ============================================ */
+
+.report-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+  animation: reportSlideUp var(--duration) var(--ease) both;
+}
+
+.report-overlay.hidden {
+  display: none;
+}
+
+@keyframes reportSlideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.report-overlay-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--s-xl) var(--s-xl) 0;
+  padding-top: calc(var(--s-xl) + env(safe-area-inset-top, 0px));
+}
+
+.report-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--s-lg);
+  gap: var(--s-md);
+  flex-shrink: 0;
+}
+
+.report-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--s-xl);
+  overscroll-behavior: contain;
+}
+
+.report-body .report-card {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--s-xl);
+  margin-bottom: var(--s-md);
+}
+
+.report-body .report-card-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-tertiary);
+  margin-bottom: var(--s-md);
+}
+
+.report-body .report-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-md);
+}
+
+.report-body .report-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.report-body .report-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.report-body .report-stat-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.report-body .report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.report-body .report-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  padding: var(--s-sm) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.report-body .report-table td {
+  padding: var(--s-sm) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.report-body .report-table tr:last-child td {
+  border-bottom: none;
+}
+
+.report-body .report-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+}
+
+.report-body .report-tag {
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.report-body .report-tag-mood {
+  background: var(--mood-bg);
+  color: var(--mood);
+}
+
+.report-body .report-tag-symptom {
+  background: var(--symptom-bg);
+  color: var(--symptom);
+}
+
+.report-body .report-empty {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.report-body .report-date-range {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: var(--s-xl);
+}
+
+.report-body .report-footer {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: var(--s-xl) 0;
+}
+
+.report-actions {
+  display: flex;
+  gap: var(--s-md);
+  padding: var(--s-lg) 0;
+  padding-bottom: calc(var(--s-lg) + env(safe-area-inset-bottom, 0px));
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.report-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-sm);
+  padding: 14px var(--s-lg);
+  border-radius: var(--r-md);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.report-action-btn:active {
+  transform: scale(0.96);
+}
+
+.report-action-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* ============================================
    Mode Selector
    ============================================ */
 
