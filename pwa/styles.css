@@ -1784,6 +1784,60 @@ input, textarea {
 }
 
 /* ============================================
+   Mood Grid — emoji-first, 4-col on mobile
+   ============================================ */
+
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-sm);
+}
+
+.mood-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  transition: all var(--duration-fast) var(--ease);
+  cursor: pointer;
+}
+
+.mood-pill:active {
+  transform: scale(0.92);
+}
+
+.mood-emoji {
+  font-size: 24px;
+  line-height: 1;
+  transition: transform var(--duration-fast) var(--ease-bounce);
+}
+
+.mood-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color var(--duration-fast);
+}
+
+.mood-pill.active {
+  border-color: var(--mood);
+  background: var(--mood-bg);
+}
+
+.mood-pill.active .mood-emoji {
+  transform: scale(1.15);
+}
+
+.mood-pill.active .mood-label {
+  color: #4A5A8B;
+  font-weight: 600;
+}
+
+/* ============================================
    Select Row (discharge, sex)
    ============================================ */
 
@@ -2509,8 +2563,12 @@ input, textarea {
 }
 
 .bc-opt {
-  padding: var(--s-sm) var(--s-md);
-  border-radius: var(--r-full);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px var(--s-sm);
+  border-radius: var(--r-md);
   border: 1.5px solid var(--border);
   background: var(--surface);
   color: var(--text);
@@ -2521,9 +2579,73 @@ input, textarea {
   text-align: center;
 }
 
+.bc-icon {
+  font-size: 22px;
+  line-height: 1;
+  transition: transform var(--duration-fast) var(--ease-bounce);
+}
+
+.bc-name {
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .bc-opt.active {
   border-color: var(--accent);
   background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.bc-opt.active .bc-icon {
+  transform: scale(1.12);
+}
+
+/* BC sub-selector (pill type, IUD type, etc.) */
+.bc-sub {
+  margin-bottom: var(--s-md);
+  animation: slideDown var(--duration-fast) var(--ease) both;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bc-sub-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-tertiary);
+  margin-bottom: var(--s-sm);
+}
+
+.bc-sub-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+}
+
+.bc-sub-opt {
+  padding: 8px 16px;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.bc-sub-opt:active {
+  transform: scale(0.94);
+}
+
+.bc-sub-opt.active {
+  border-color: var(--accent);
+  background: var(--accent-bg-strong);
   color: var(--accent);
   font-weight: 600;
 }
