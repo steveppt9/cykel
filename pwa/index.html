@@ -345,16 +345,16 @@
       <button id="btn-panda" class="panda-fab" aria-label="Ask Period Panda">
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="panda-fab-svg">
           <g class="panda-body">
-            <circle cx="24" cy="24" r="14" fill="#2D2D2D"/><circle cx="76" cy="24" r="14" fill="#2D2D2D"/>
-            <circle cx="24" cy="24" r="7" fill="#E8A0B0" opacity="0.6"/><circle cx="76" cy="24" r="7" fill="#E8A0B0" opacity="0.6"/>
-            <circle cx="50" cy="52" r="38" fill="#2D2D2D"/>
-            <ellipse cx="50" cy="56" rx="28" ry="26" fill="#F5F0EB"/>
-            <ellipse cx="36" cy="48" rx="12" ry="10" fill="#2D2D2D"/><ellipse cx="64" cy="48" rx="12" ry="10" fill="#2D2D2D"/>
-            <g class="panda-eyes"><ellipse cx="36" cy="48" rx="5" ry="5.5" fill="#F5F0EB"/><ellipse cx="64" cy="48" rx="5" ry="5.5" fill="#F5F0EB"/>
-            <circle cx="37" cy="48" r="2.8" fill="#2D2D2D"/><circle cx="65" cy="48" r="2.8" fill="#2D2D2D"/></g>
-            <ellipse cx="50" cy="57" rx="4" ry="2.8" fill="#2D2D2D"/>
-            <path d="M46 61 Q50 65 54 61" fill="none" stroke="#2D2D2D" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="28" cy="60" r="5.5" fill="#E8A0B0" opacity="0.35"/><circle cx="72" cy="60" r="5.5" fill="#E8A0B0" opacity="0.35"/>
+            <circle cx="24" cy="24" r="14" fill="#F2A0B5"/><circle cx="76" cy="24" r="14" fill="#F2A0B5"/>
+            <circle cx="24" cy="24" r="7" fill="#F7C4D0" opacity="0.8"/><circle cx="76" cy="24" r="7" fill="#F7C4D0" opacity="0.8"/>
+            <circle cx="50" cy="52" r="38" fill="#F2A0B5"/>
+            <ellipse cx="50" cy="56" rx="28" ry="26" fill="#FFF5F7"/>
+            <ellipse cx="36" cy="48" rx="12" ry="10" fill="#E88DA3"/><ellipse cx="64" cy="48" rx="12" ry="10" fill="#E88DA3"/>
+            <g class="panda-eyes"><ellipse cx="36" cy="48" rx="5" ry="5.5" fill="#FFF5F7"/><ellipse cx="64" cy="48" rx="5" ry="5.5" fill="#FFF5F7"/>
+            <circle cx="37" cy="48" r="2.8" fill="#5A3044"/><circle cx="65" cy="48" r="2.8" fill="#5A3044"/></g>
+            <ellipse cx="50" cy="57" rx="4" ry="2.8" fill="#5A3044"/>
+            <path d="M46 61 Q50 65 54 61" fill="none" stroke="#5A3044" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="28" cy="60" r="5.5" fill="#F7C4D0" opacity="0.5"/><circle cx="72" cy="60" r="5.5" fill="#F7C4D0" opacity="0.5"/>
           </g>
         </svg>
       </button>
@@ -554,6 +554,30 @@
               <p class="report-hint">Creates a printable summary of the last 6 months</p>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doctor Report Overlay -->
+    <div id="report-overlay" class="report-overlay hidden">
+      <div class="report-overlay-inner">
+        <div class="report-overlay-header">
+          <button id="btn-report-close" class="back-btn" aria-label="Close report">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <h2 class="sheet-title">Doctor's Report</h2>
+          <div class="header-spacer"></div>
+        </div>
+        <div id="report-body" class="report-body"></div>
+        <div class="report-actions">
+          <button id="btn-report-print" class="report-action-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print
+          </button>
+          <button id="btn-report-share" class="report-action-btn report-action-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Share
+          </button>
         </div>
       </div>
     </div>

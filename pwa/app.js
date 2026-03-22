@@ -1669,43 +1669,19 @@ function renderMoodSummary() {
   });
 }
 
-document.getElementById('btn-doctor-report').addEventListener('click', () => {
-  if (!appData) return;
+// Build printable HTML for doctor report (used by print & share)
+function buildReportPrintHTML(stats, completed, topSymptoms, topMoods, reportNameMap, sixMonthsAgo, now) {
+  const avgCycle = stats.avg_cycle_length ? Math.round(stats.avg_cycle_length) + 'd' : '--';
+  const avgPeriod = stats.avg_period_length ? Math.round(stats.avg_period_length) + 'd' : '--';
+  const shortest = stats.shortest_cycle != null ? stats.shortest_cycle + 'd' : '--';
+  const longest = stats.longest_cycle != null ? stats.longest_cycle + 'd' : '--';
 
-  const stats = cycleStats(appData.cycles);
-  const completed = appData.cycles
-    .filter(c => c.end_date != null)
-    .sort((a, b) => a.start_date.localeCompare(b.start_date));
-
-  // Symptom counts
-  const symptomCounts = {};
-  appData.symptoms.forEach(s => {
-    symptomCounts[s.symptom_type] = (symptomCounts[s.symptom_type] || 0) + 1;
-  });
-  const topSymptoms = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
-
-  // Mood counts
-  const moodCounts = {};
-  appData.day_logs.forEach(log => {
-    if (log.moods) log.moods.forEach(m => { moodCounts[m] = (moodCounts[m] || 0) + 1; });
-  });
-  const topMoods = Object.entries(moodCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
-
-  // 6-month date range
-  const now = new Date();
-  const sixMonthsAgo = new Date(now);
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-  const reportNameMap = { BreastPain: 'Breast Pain', PelvicPressure: 'Pelvic Pressure', HotFlashes: 'Hot Flashes', JointPain: 'Joint Pain', AppetiteChanges: 'Appetite Changes', HeavyDischarge: 'Heavy Discharge', LightDischarge: 'Light Discharge', Cravings: 'Cravings', Diarrhea: 'Diarrhea', Constipation: 'Constipation' };
-
-  // Build cycle history rows
   let cycleRows = '';
   for (let i = 1; i < completed.length; i++) {
     const len = daysBetweenDates(completed[i - 1].start_date, completed[i].start_date);
     const periodLen = daysBetweenDates(completed[i - 1].start_date, completed[i - 1].end_date) + 1;
     cycleRows += '<tr><td>' + completed[i - 1].start_date + '</td><td>' + completed[i - 1].end_date + '</td><td>' + periodLen + 'd</td><td>' + len + 'd</td></tr>';
   }
-  // Add last cycle
   if (completed.length) {
     const last = completed[completed.length - 1];
     const periodLen = daysBetweenDates(last.start_date, last.end_date) + 1;
@@ -1715,18 +1691,31 @@ document.getElementById('btn-doctor-report').addEventListener('click', () => {
   const symptomTags = topSymptoms.length
     ? '<div class="tag-list">' + topSymptoms.map(([s, c]) => '<span class="tag">' + (reportNameMap[s] || s) + ' (' + c + ')</span>').join('') + '</div>'
     : '<p>No symptoms logged yet.</p>';
-
   const moodTags = topMoods.length
     ? '<div class="tag-list">' + topMoods.map(([m, c]) => '<span class="tag">' + m + ' (' + c + ')</span>').join('') + '</div>'
     : '<p>No moods logged yet.</p>';
 
-  const avgCycle = stats.avg_cycle_length ? Math.round(stats.avg_cycle_length) + 'd' : '--';
-  const avgPeriod = stats.avg_period_length ? Math.round(stats.avg_period_length) + 'd' : '--';
-  const shortest = stats.shortest_cycle != null ? stats.shortest_cycle + 'd' : '--';
-  const longest = stats.longest_cycle != null ? stats.longest_cycle + 'd' : '--';
+  const colorCounts = {};
+  appData.day_logs.forEach(log => {
+    if (log.discharge_color) colorCounts[log.discharge_color] = (colorCounts[log.discharge_color] || 0) + 1;
+  });
+  const colorEntries = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]);
+  const colorTags = colorEntries.length
+    ? '<div class="tag-list">' + colorEntries.map(([c, n]) => '<span class="tag">' + c + ' (' + n + ')</span>').join('') + '</div>'
+    : '<p>No discharge colors logged yet.</p>';
 
-  const win = window.open('', '_blank');
-  win.document.write('<!DOCTYPE html><html><head><title>Cykel - Cycle Report</title>' +
+  const bc = appData.settings.birth_control;
+  let bcHTML = '<p>None currently tracked.</p>';
+  if (bc && bc.current) {
+    bcHTML = '<p>Current: <strong>' + bc.current.method + '</strong> since ' + bc.current.start_date + '</p>';
+    if (bc.history.length) {
+      bcHTML += '<table><thead><tr><th>Method</th><th>Start</th><th>End</th></tr></thead><tbody>';
+      bc.history.forEach(h => { bcHTML += '<tr><td>' + h.method + '</td><td>' + h.start_date + '</td><td>' + h.end_date + '</td></tr>'; });
+      bcHTML += '</tbody></table>';
+    }
+  }
+
+  return '<!DOCTYPE html><html><head><title>Cykel - Cycle Report</title>' +
     '<style>' +
     'body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 40px auto; color: #1A1714; padding: 0 20px; }' +
     'h1 { font-size: 28px; margin-bottom: 4px; }' +
@@ -1745,43 +1734,192 @@ document.getElementById('btn-doctor-report').addEventListener('click', () => {
     '</style></head><body>' +
     '<h1>Cykel \u2014 Cycle Report</h1>' +
     '<p class="subtitle">' + sixMonthsAgo.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + ' \u2013 ' + now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + '</p>' +
-    '<h2>Summary</h2>' +
-    '<div class="stat-row">' +
+    '<h2>Summary</h2><div class="stat-row">' +
     '<div class="stat-item"><strong>' + avgCycle + '</strong>Avg cycle</div>' +
     '<div class="stat-item"><strong>' + avgPeriod + '</strong>Avg period</div>' +
     '<div class="stat-item"><strong>' + shortest + '</strong>Shortest</div>' +
     '<div class="stat-item"><strong>' + longest + '</strong>Longest</div>' +
     '<div class="stat-item"><strong>' + stats.total_cycles + '</strong>Total cycles</div>' +
     '</div>' +
-    '<h2>Cycle History</h2>' +
-    '<table><thead><tr><th>Start</th><th>End</th><th>Period</th><th>Cycle</th></tr></thead><tbody>' + cycleRows + '</tbody></table>' +
+    '<h2>Cycle History</h2><table><thead><tr><th>Start</th><th>End</th><th>Period</th><th>Cycle</th></tr></thead><tbody>' + cycleRows + '</tbody></table>' +
     '<h2>Common Symptoms</h2>' + symptomTags +
-    '<h2>Discharge Colors</h2>' + (() => {
-      const colorCounts = {};
-      appData.day_logs.forEach(log => {
-        if (log.discharge_color) colorCounts[log.discharge_color] = (colorCounts[log.discharge_color] || 0) + 1;
-      });
-      const colorEntries = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]);
-      return colorEntries.length
-        ? '<div class="tag-list">' + colorEntries.map(([c, n]) => '<span class="tag">' + c + ' (' + n + ')</span>').join('') + '</div>'
-        : '<p>No discharge colors logged yet.</p>';
-    })() +
+    '<h2>Discharge Colors</h2>' + colorTags +
     '<h2>Common Moods</h2>' + moodTags +
-    '<h2>Birth Control</h2>' + (() => {
-      const bc = appData.settings.birth_control;
-      if (!bc || !bc.current) return '<p>None currently tracked.</p>';
-      let html = '<p>Current: <strong>' + bc.current.method + '</strong> since ' + bc.current.start_date + '</p>';
-      if (bc.history.length) {
-        html += '<table><thead><tr><th>Method</th><th>Start</th><th>End</th></tr></thead><tbody>';
-        bc.history.forEach(h => { html += '<tr><td>' + h.method + '</td><td>' + h.start_date + '</td><td>' + h.end_date + '</td></tr>'; });
-        html += '</tbody></table>';
-      }
-      return html;
-    })() +
+    '<h2>Birth Control</h2>' + bcHTML +
     '<p class="footer">Generated by Cykel \u00b7 ' + now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' \u00b7 Private & encrypted on-device tracker</p>' +
-    '</body></html>');
-  win.document.close();
-  setTimeout(() => win.print(), 500);
+    '</body></html>';
+}
+
+document.getElementById('btn-doctor-report').addEventListener('click', () => {
+  if (!appData) return;
+
+  const stats = cycleStats(appData.cycles);
+  const completed = appData.cycles
+    .filter(c => c.end_date != null)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+
+  const symptomCounts = {};
+  appData.symptoms.forEach(s => {
+    symptomCounts[s.symptom_type] = (symptomCounts[s.symptom_type] || 0) + 1;
+  });
+  const topSymptoms = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+  const moodCounts = {};
+  appData.day_logs.forEach(log => {
+    if (log.moods) log.moods.forEach(m => { moodCounts[m] = (moodCounts[m] || 0) + 1; });
+  });
+  const topMoods = Object.entries(moodCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+  const now = new Date();
+  const sixMonthsAgo = new Date(now);
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const reportNameMap = { BreastPain: 'Breast Pain', PelvicPressure: 'Pelvic Pressure', HotFlashes: 'Hot Flashes', JointPain: 'Joint Pain', AppetiteChanges: 'Appetite Changes', HeavyDischarge: 'Heavy Discharge', LightDischarge: 'Light Discharge', Cravings: 'Cravings', Diarrhea: 'Diarrhea', Constipation: 'Constipation' };
+
+  const avgCycle = stats.avg_cycle_length ? Math.round(stats.avg_cycle_length) + 'd' : '--';
+  const avgPeriod = stats.avg_period_length ? Math.round(stats.avg_period_length) + 'd' : '--';
+  const shortest = stats.shortest_cycle != null ? stats.shortest_cycle + 'd' : '--';
+  const longest = stats.longest_cycle != null ? stats.longest_cycle + 'd' : '--';
+
+  // Build cycle history rows
+  let cycleRows = '';
+  for (let i = 1; i < completed.length; i++) {
+    const len = daysBetweenDates(completed[i - 1].start_date, completed[i].start_date);
+    const periodLen = daysBetweenDates(completed[i - 1].start_date, completed[i - 1].end_date) + 1;
+    cycleRows += '<tr><td>' + completed[i - 1].start_date + '</td><td>' + completed[i - 1].end_date + '</td><td>' + periodLen + 'd</td><td>' + len + 'd</td></tr>';
+  }
+  if (completed.length) {
+    const last = completed[completed.length - 1];
+    const periodLen = daysBetweenDates(last.start_date, last.end_date) + 1;
+    cycleRows += '<tr><td>' + last.start_date + '</td><td>' + last.end_date + '</td><td>' + periodLen + 'd</td><td>--</td></tr>';
+  }
+
+  // Discharge color counts
+  const colorCounts = {};
+  appData.day_logs.forEach(log => {
+    if (log.discharge_color) colorCounts[log.discharge_color] = (colorCounts[log.discharge_color] || 0) + 1;
+  });
+  const colorEntries = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]);
+
+  // Birth control
+  const bc = appData.settings.birth_control;
+  let bcHTML = '<p class="report-empty">None currently tracked</p>';
+  if (bc && bc.current) {
+    bcHTML = '<p style="font-size:14px;color:var(--text-secondary)">Current: <strong>' + bc.current.method + '</strong> since ' + bc.current.start_date + '</p>';
+    if (bc.history.length) {
+      bcHTML += '<table class="report-table"><thead><tr><th>Method</th><th>Start</th><th>End</th></tr></thead><tbody>';
+      bc.history.forEach(h => { bcHTML += '<tr><td>' + h.method + '</td><td>' + h.start_date + '</td><td>' + h.end_date + '</td></tr>'; });
+      bcHTML += '</tbody></table>';
+    }
+  }
+
+  // Build in-app report
+  const reportBody = document.getElementById('report-body');
+  reportBody.innerHTML =
+    '<p class="report-date-range">' + sixMonthsAgo.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + ' \u2013 ' + now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + '</p>' +
+
+    '<div class="report-card">' +
+    '<div class="report-card-label">Summary</div>' +
+    '<div class="report-stat-grid">' +
+    '<div class="report-stat"><span class="report-stat-value">' + avgCycle + '</span><span class="report-stat-label">avg cycle</span></div>' +
+    '<div class="report-stat"><span class="report-stat-value">' + avgPeriod + '</span><span class="report-stat-label">avg period</span></div>' +
+    '<div class="report-stat"><span class="report-stat-value">' + shortest + '</span><span class="report-stat-label">shortest</span></div>' +
+    '<div class="report-stat"><span class="report-stat-value">' + longest + '</span><span class="report-stat-label">longest</span></div>' +
+    '<div class="report-stat"><span class="report-stat-value">' + stats.total_cycles + '</span><span class="report-stat-label">total cycles</span></div>' +
+    '</div></div>' +
+
+    '<div class="report-card">' +
+    '<div class="report-card-label">Cycle History</div>' +
+    (cycleRows ? '<table class="report-table"><thead><tr><th>Start</th><th>End</th><th>Period</th><th>Cycle</th></tr></thead><tbody>' + cycleRows + '</tbody></table>' : '<p class="report-empty">No completed cycles yet</p>') +
+    '</div>' +
+
+    '<div class="report-card">' +
+    '<div class="report-card-label">Common Symptoms</div>' +
+    (topSymptoms.length
+      ? '<div class="report-tags">' + topSymptoms.map(([s, c]) => '<span class="report-tag report-tag-symptom">' + (reportNameMap[s] || s) + ' \u00b7 ' + c + '</span>').join('') + '</div>'
+      : '<p class="report-empty">No symptoms logged yet</p>') +
+    '</div>' +
+
+    '<div class="report-card">' +
+    '<div class="report-card-label">Discharge Colors</div>' +
+    (colorEntries.length
+      ? '<div class="report-tags">' + colorEntries.map(([c, n]) => '<span class="report-tag">' + c + ' \u00b7 ' + n + '</span>').join('') + '</div>'
+      : '<p class="report-empty">No discharge colors logged yet</p>') +
+    '</div>' +
+
+    '<div class="report-card">' +
+    '<div class="report-card-label">Common Moods</div>' +
+    (topMoods.length
+      ? '<div class="report-tags">' + topMoods.map(([m, c]) => '<span class="report-tag report-tag-mood">' + m + ' \u00b7 ' + c + '</span>').join('') + '</div>'
+      : '<p class="report-empty">No moods logged yet</p>') +
+    '</div>' +
+
+    '<div class="report-card">' +
+    '<div class="report-card-label">Birth Control</div>' +
+    bcHTML +
+    '</div>' +
+
+    '<p class="report-footer">Generated by Cykel \u00b7 ' + now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + '<br>Private & encrypted on-device</p>';
+
+  // Store data for print/share
+  reportBody.dataset.printHTML = buildReportPrintHTML(stats, completed, topSymptoms, topMoods, reportNameMap, sixMonthsAgo, now);
+
+  // Show overlay
+  const overlay = document.getElementById('report-overlay');
+  overlay.classList.remove('hidden');
+  reportBody.scrollTop = 0;
+});
+
+// Close report overlay
+document.getElementById('btn-report-close').addEventListener('click', () => {
+  document.getElementById('report-overlay').classList.add('hidden');
+});
+
+// Print report
+document.getElementById('btn-report-print').addEventListener('click', () => {
+  const printHTML = document.getElementById('report-body').dataset.printHTML;
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.write(printHTML);
+    win.document.close();
+    setTimeout(() => win.print(), 400);
+  } else {
+    window.print();
+  }
+});
+
+// Share report
+document.getElementById('btn-report-share').addEventListener('click', async () => {
+  const reportBody = document.getElementById('report-body');
+  const printHTML = reportBody.dataset.printHTML;
+  const textContent = reportBody.innerText;
+
+  if (navigator.share) {
+    try {
+      const blob = new Blob([printHTML], { type: 'text/html' });
+      const file = new File([blob], 'cykel-cycle-report.html', { type: 'text/html' });
+      await navigator.share({
+        title: 'Cykel - Cycle Report',
+        text: textContent.substring(0, 200),
+        files: [file]
+      });
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        try {
+          await navigator.share({
+            title: 'Cykel - Cycle Report',
+            text: textContent
+          });
+        } catch (_) {}
+      }
+    }
+  } else {
+    await navigator.clipboard.writeText(textContent);
+    const btn = document.getElementById('btn-report-share');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+  }
 });
 
 document.getElementById('btn-stats-back').addEventListener('click', () => showScreen('calendar'));
@@ -2256,57 +2394,57 @@ function showModal(title, message, confirmLabel, onConfirm, destructive = false)
 const PANDA_SVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   <g class="panda-body">
     <!-- Ears -->
-    <circle cx="24" cy="24" r="14" fill="#2D2D2D"/>
-    <circle cx="76" cy="24" r="14" fill="#2D2D2D"/>
-    <circle cx="24" cy="24" r="7" fill="#E8A0B0" opacity="0.6"/>
-    <circle cx="76" cy="24" r="7" fill="#E8A0B0" opacity="0.6"/>
+    <circle cx="24" cy="24" r="14" fill="#F2A0B5"/>
+    <circle cx="76" cy="24" r="14" fill="#F2A0B5"/>
+    <circle cx="24" cy="24" r="7" fill="#F7C4D0" opacity="0.8"/>
+    <circle cx="76" cy="24" r="7" fill="#F7C4D0" opacity="0.8"/>
     <!-- Head -->
-    <circle cx="50" cy="52" r="38" fill="#2D2D2D"/>
+    <circle cx="50" cy="52" r="38" fill="#F2A0B5"/>
     <!-- Face -->
-    <ellipse cx="50" cy="56" rx="28" ry="26" fill="#F5F0EB"/>
+    <ellipse cx="50" cy="56" rx="28" ry="26" fill="#FFF5F7"/>
     <!-- Eye patches -->
-    <ellipse cx="36" cy="48" rx="12" ry="10" fill="#2D2D2D"/>
-    <ellipse cx="64" cy="48" rx="12" ry="10" fill="#2D2D2D"/>
+    <ellipse cx="36" cy="48" rx="12" ry="10" fill="#E88DA3"/>
+    <ellipse cx="64" cy="48" rx="12" ry="10" fill="#E88DA3"/>
     <!-- Eyes (blink targets) -->
     <g class="panda-eyes">
-      <ellipse cx="36" cy="48" rx="5" ry="5.5" fill="#F5F0EB"/>
-      <ellipse cx="64" cy="48" rx="5" ry="5.5" fill="#F5F0EB"/>
-      <circle class="panda-pupil-l" cx="37" cy="48" r="2.8" fill="#2D2D2D"/>
-      <circle class="panda-pupil-r" cx="65" cy="48" r="2.8" fill="#2D2D2D"/>
+      <ellipse cx="36" cy="48" rx="5" ry="5.5" fill="#FFF5F7"/>
+      <ellipse cx="64" cy="48" rx="5" ry="5.5" fill="#FFF5F7"/>
+      <circle class="panda-pupil-l" cx="37" cy="48" r="2.8" fill="#5A3044"/>
+      <circle class="panda-pupil-r" cx="65" cy="48" r="2.8" fill="#5A3044"/>
       <!-- Sparkle dots (hidden by default, shown in happy state) -->
       <circle class="panda-sparkle" cx="34" cy="45" r="1.2" fill="white" opacity="0"/>
       <circle class="panda-sparkle" cx="62" cy="45" r="1.2" fill="white" opacity="0"/>
     </g>
     <!-- Nose -->
-    <ellipse cx="50" cy="57" rx="4" ry="2.8" fill="#2D2D2D"/>
+    <ellipse cx="50" cy="57" rx="4" ry="2.8" fill="#5A3044"/>
     <!-- Mouth -->
-    <path d="M46 61 Q50 65 54 61" fill="none" stroke="#2D2D2D" stroke-width="1.5" stroke-linecap="round" class="panda-mouth"/>
+    <path d="M46 61 Q50 65 54 61" fill="none" stroke="#5A3044" stroke-width="1.5" stroke-linecap="round" class="panda-mouth"/>
     <!-- Cheeks -->
-    <circle cx="28" cy="60" r="5.5" fill="#E8A0B0" opacity="0.35"/>
-    <circle cx="72" cy="60" r="5.5" fill="#E8A0B0" opacity="0.35"/>
+    <circle cx="28" cy="60" r="5.5" fill="#F7C4D0" opacity="0.5"/>
+    <circle cx="72" cy="60" r="5.5" fill="#F7C4D0" opacity="0.5"/>
   </g>
 </svg>`;
 
 const PANDA_SVG_MINI = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   <g class="panda-body">
-    <circle cx="24" cy="24" r="14" fill="#2D2D2D"/>
-    <circle cx="76" cy="24" r="14" fill="#2D2D2D"/>
-    <circle cx="24" cy="24" r="7" fill="#E8A0B0" opacity="0.6"/>
-    <circle cx="76" cy="24" r="7" fill="#E8A0B0" opacity="0.6"/>
-    <circle cx="50" cy="52" r="38" fill="#2D2D2D"/>
-    <ellipse cx="50" cy="56" rx="28" ry="26" fill="#F5F0EB"/>
-    <ellipse cx="36" cy="48" rx="12" ry="10" fill="#2D2D2D"/>
-    <ellipse cx="64" cy="48" rx="12" ry="10" fill="#2D2D2D"/>
+    <circle cx="24" cy="24" r="14" fill="#F2A0B5"/>
+    <circle cx="76" cy="24" r="14" fill="#F2A0B5"/>
+    <circle cx="24" cy="24" r="7" fill="#F7C4D0" opacity="0.8"/>
+    <circle cx="76" cy="24" r="7" fill="#F7C4D0" opacity="0.8"/>
+    <circle cx="50" cy="52" r="38" fill="#F2A0B5"/>
+    <ellipse cx="50" cy="56" rx="28" ry="26" fill="#FFF5F7"/>
+    <ellipse cx="36" cy="48" rx="12" ry="10" fill="#E88DA3"/>
+    <ellipse cx="64" cy="48" rx="12" ry="10" fill="#E88DA3"/>
     <g class="panda-eyes">
-      <ellipse cx="36" cy="48" rx="5" ry="5.5" fill="#F5F0EB"/>
-      <ellipse cx="64" cy="48" rx="5" ry="5.5" fill="#F5F0EB"/>
-      <circle cx="37" cy="48" r="2.8" fill="#2D2D2D"/>
-      <circle cx="65" cy="48" r="2.8" fill="#2D2D2D"/>
+      <ellipse cx="36" cy="48" rx="5" ry="5.5" fill="#FFF5F7"/>
+      <ellipse cx="64" cy="48" rx="5" ry="5.5" fill="#FFF5F7"/>
+      <circle cx="37" cy="48" r="2.8" fill="#5A3044"/>
+      <circle cx="65" cy="48" r="2.8" fill="#5A3044"/>
     </g>
-    <ellipse cx="50" cy="57" rx="4" ry="2.8" fill="#2D2D2D"/>
-    <path d="M46 61 Q50 65 54 61" fill="none" stroke="#2D2D2D" stroke-width="1.5" stroke-linecap="round"/>
-    <circle cx="28" cy="60" r="5.5" fill="#E8A0B0" opacity="0.35"/>
-    <circle cx="72" cy="60" r="5.5" fill="#E8A0B0" opacity="0.35"/>
+    <ellipse cx="50" cy="57" rx="4" ry="2.8" fill="#5A3044"/>
+    <path d="M46 61 Q50 65 54 61" fill="none" stroke="#5A3044" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="28" cy="60" r="5.5" fill="#F7C4D0" opacity="0.5"/>
+    <circle cx="72" cy="60" r="5.5" fill="#F7C4D0" opacity="0.5"/>
   </g>
 </svg>`;
 
@@ -2318,31 +2456,89 @@ function pandaSuggestions() {
   return shuffled.slice(0, 6);
 }
 
+// Conversation context for follow-up awareness
+let pandaContext = { lastCategory: null, lastEntryId: null, lastKeywords: [], turnCount: 0 };
+
+// Detect if a message is a vague follow-up that needs context
+const FOLLOWUP_PATTERNS = /^(what (should|can|do) i|how (do|should|can) i|is that|should i|and |but |also |what about|tell me more|more about|what else|okay |ok |so |like what|what if|how long|when should|can you|really|why|what now|how about|does that|will it|and what|is it)/i;
+const PRONOUN_HEAVY = /^(it|that|this|they|them|those|these)\b/i;
+
 function matchPandaAnswer(query) {
-  const words = query.toLowerCase().replace(/[?.,!'"]/g, '').split(/\s+/).filter(w => w.length > 2);
+  const cleaned = query.toLowerCase().replace(/[?.,!'"]/g, '');
+  const words = cleaned.split(/\s+/).filter(w => w.length > 2);
+  const isFollowUp = FOLLOWUP_PATTERNS.test(cleaned.trim()) || (words.length <= 4 && PRONOUN_HEAVY.test(cleaned.trim()));
+
   let bestScore = 0;
   let bestEntry = null;
 
   for (const entry of pandaKB) {
     let score = 0;
+
+    // Keyword matching
     for (const word of words) {
       for (const kw of entry.keywords) {
         if (kw === word) score += 3;
         else if (kw.includes(word) || word.includes(kw)) score += 1.5;
       }
     }
+
     // Boost if query words appear in the question text
     const qLower = entry.q.toLowerCase();
     for (const word of words) {
       if (qLower.includes(word)) score += 0.5;
     }
+
+    // Boost if query words match answer text (catches contextual terms)
+    const aLower = entry.answer.toLowerCase();
+    for (const word of words) {
+      if (aLower.includes(word)) score += 0.3;
+    }
+
+    // Context boost: if this looks like a follow-up, bias toward same category/related entries
+    if (isFollowUp && pandaContext.lastCategory) {
+      if (entry.category === pandaContext.lastCategory) score += 2.5;
+      // Also check if user's words overlap with keywords from the last answer's entry
+      for (const word of words) {
+        for (const prevKw of pandaContext.lastKeywords) {
+          if (prevKw === word || prevKw.includes(word) || word.includes(prevKw)) score += 1;
+        }
+      }
+    }
+
+    // Small penalty for repeating the exact same entry
+    if (entry.id === pandaContext.lastEntryId) score -= 1.5;
+
     if (score > bestScore) {
       bestScore = score;
       bestEntry = entry;
     }
   }
 
-  if (bestScore >= 2 && bestEntry) return bestEntry.answer;
+  // For follow-ups, lower the threshold since context fills in meaning
+  const threshold = isFollowUp ? 1.5 : 2;
+
+  if (bestScore >= threshold && bestEntry) {
+    // Update context
+    pandaContext.lastCategory = bestEntry.category;
+    pandaContext.lastEntryId = bestEntry.id;
+    pandaContext.lastKeywords = bestEntry.keywords;
+    pandaContext.turnCount++;
+    return bestEntry.answer;
+  }
+
+  // If it's a follow-up and we have context but couldn't match, give a context-aware fallback
+  if (isFollowUp && pandaContext.lastCategory) {
+    const categoryNames = {
+      'cycle-basics': 'your cycle', 'symptoms': 'symptoms', 'discharge': 'discharge',
+      'fertility': 'fertility', 'pregnancy': 'pregnancy', 'birth-control': 'birth control',
+      'doctor': 'seeing a doctor', 'lifestyle': 'lifestyle', 'privacy': 'your data',
+      'conditions': 'health conditions'
+    };
+    const topic = categoryNames[pandaContext.lastCategory] || 'that topic';
+    return "i want to help but i'm not sure what you're asking about " + topic + ". can you rephrase? like \"what are the symptoms of...\" or \"is it normal to...\" — that helps me find the right answer for you.";
+  }
+
+  pandaContext.turnCount++;
   return "hmm, i'm not sure about that one. try asking about periods, cramps, discharge, fertility, birth control, or when to see a doctor — i've got you on those topics.";
 }
 
@@ -2403,6 +2599,7 @@ function openPandaChat() {
     setTimeout(() => {
       overlay.remove();
       pandaChatOpen = false;
+      pandaContext = { lastCategory: null, lastEntryId: null, lastKeywords: [], turnCount: 0 };
     }, 500);
   }
 

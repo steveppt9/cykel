@@ -11,7 +11,7 @@ export const pandaKB = [
   {
     id: "late-period",
     q: "Why is my period late?",
-    keywords: ["late", "period", "missed", "delay", "overdue", "skipped", "missing", "haven't gotten"],
+    keywords: ["late", "period", "missed", "delay", "overdue", "skipped", "missing", "haven't gotten", "no period", "where is my period", "period won't come"],
     answer: "Periods can be late for so many reasons — stress is a huge one, but also changes in weight, exercise, travel, sleep, or just your body being unpredictable. If you're sexually active, a pregnancy test is a good call after 7+ days late. If it keeps happening, your doctor can help figure out what's going on.",
     category: "cycle-basics"
   },
@@ -222,21 +222,21 @@ export const pandaKB = [
   {
     id: "early-pregnancy",
     q: "What are early pregnancy symptoms?",
-    keywords: ["pregnancy", "symptoms", "early", "signs", "pregnant", "am i pregnant"],
+    keywords: ["pregnancy", "symptoms", "early", "signs", "pregnant", "am i pregnant", "think pregnant", "could be pregnant", "might be pregnant", "feel pregnant"],
     answer: "The biggest one is a missed period. Other early signs include nausea (not just in the morning), sore boobs, fatigue, peeing more often, and sometimes light spotting (implantation bleeding). The tricky part is a lot of these overlap with PMS. A test is the only way to know for sure — they're accurate from the first day of a missed period.",
     category: "pregnancy"
   },
   {
     id: "when-to-test",
     q: "When should I take a pregnancy test?",
-    keywords: ["test", "pregnancy test", "when", "take test", "how soon", "accurate"],
+    keywords: ["test", "pregnancy test", "when", "take test", "how soon", "accurate", "should i test", "need test", "false negative", "positive", "negative"],
     answer: "For the most accurate result, wait until the first day of your missed period. Testing too early can give you a false negative because hCG levels might not be high enough yet. First-morning pee is best since it's the most concentrated. If you get a negative but still no period after a week, test again.",
     category: "pregnancy"
   },
   {
     id: "implantation-bleeding",
     q: "What is implantation bleeding?",
-    keywords: ["implantation", "bleeding", "light bleeding", "spotting early", "implant"],
+    keywords: ["implantation", "bleeding", "light bleeding", "spotting early", "implant", "conceived", "fertilized", "after conception"],
     answer: "Implantation bleeding happens when a fertilized egg attaches to your uterine lining, usually 6-12 days after conception. It's typically very light — pink or brown spotting that lasts a day or two, much lighter than a period. Not everyone gets it. If you're unsure whether it's implantation or your period starting, wait a few days and take a test.",
     category: "pregnancy"
   },

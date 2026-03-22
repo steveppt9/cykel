@@ -4,7 +4,7 @@
 // Zero network calls after first load.
 // ============================================
 
-const CACHE_NAME = 'cykel-v17';
+const CACHE_NAME = 'cykel-v18';
 const ASSETS = [
   './',
   './index.html',
