@@ -1333,7 +1333,7 @@ function updateFlowButtons() {
 }
 
 function updateMoodChips() {
-  document.querySelectorAll('#mood-chips .chip').forEach(chip => {
+  document.querySelectorAll('#mood-chips .mood-pill').forEach(chip => {
     chip.classList.toggle('active', selectedMoods.has(chip.dataset.mood));
   });
 }
@@ -1371,7 +1371,7 @@ document.getElementById('flow-buttons').addEventListener('click', e => {
 
 // Mood chips (multi-select)
 document.getElementById('mood-chips').addEventListener('click', e => {
-  const chip = e.target.closest('.chip');
+  const chip = e.target.closest('.mood-pill');
   if (!chip) return;
   haptic();
   const mood = chip.dataset.mood;
@@ -1707,7 +1707,7 @@ function buildReportPrintHTML(stats, completed, topSymptoms, topMoods, reportNam
   const bc = appData.settings.birth_control;
   let bcHTML = '<p>None currently tracked.</p>';
   if (bc && bc.current) {
-    bcHTML = '<p>Current: <strong>' + bc.current.method + '</strong> since ' + bc.current.start_date + '</p>';
+    bcHTML = '<p>Current: <strong>' + bc.current.method + (bc.current.sub_type ? ' · ' + bc.current.sub_type : '') + '</strong> since ' + bc.current.start_date + '</p>';
     if (bc.history.length) {
       bcHTML += '<table><thead><tr><th>Method</th><th>Start</th><th>End</th></tr></thead><tbody>';
       bc.history.forEach(h => { bcHTML += '<tr><td>' + h.method + '</td><td>' + h.start_date + '</td><td>' + h.end_date + '</td></tr>'; });
@@ -2058,7 +2058,10 @@ function renderBirthControl() {
   appData.settings.birth_control = bc;
 
   const desc = document.getElementById('bc-current-desc');
-  desc.textContent = bc.current ? `${bc.current.method} since ${fmtDatePretty(bc.current.start_date)}` : 'None';
+  const methodLabel = bc.current
+    ? (bc.current.sub_type ? `${bc.current.method} · ${bc.current.sub_type}` : bc.current.method)
+    : 'None';
+  desc.textContent = bc.current ? `${methodLabel} since ${fmtDatePretty(bc.current.start_date)}` : 'None';
 
   // Render history
   const historySection = document.getElementById('bc-history');
@@ -2070,7 +2073,8 @@ function renderBirthControl() {
     bc.history.slice().reverse().forEach(h => {
       const item = document.createElement('div');
       item.className = 'bc-history-item';
-      item.innerHTML = `<span class="bc-history-method">${h.method}</span><span class="bc-history-dates">${fmtDateShort(h.start_date)} — ${fmtDateShort(h.end_date)}</span>`;
+      const histLabel = h.sub_type ? `${h.method} · ${h.sub_type}` : h.method;
+      item.innerHTML = `<span class="bc-history-method">${histLabel}</span><span class="bc-history-dates">${fmtDateShort(h.start_date)} — ${fmtDateShort(h.end_date)}</span>`;
       historyList.appendChild(item);
     });
   } else {
@@ -2079,6 +2083,36 @@ function renderBirthControl() {
 }
 
 let bcSelectedMethod = null;
+let bcSelectedSubType = null;
+
+// Sub-types for each birth control method
+const BC_SUB_TYPES = {
+  Pill: ['Combo (estrogen + progestin)', 'Mini-pill (progestin only)'],
+  IUD: ['Hormonal (Mirena, Kyleena)', 'Copper (Paragard)'],
+  Implant: ['Nexplanon'],
+  Patch: ['Xulane', 'Twirla'],
+  Ring: ['NuvaRing', 'Annovera'],
+  Shot: ['Depo-Provera'],
+  Condom: ['External (male)', 'Internal (female)'],
+  Natural: ['FAM / rhythm', 'Withdrawal', 'Tracking only']
+};
+
+function updateBcSubSelector() {
+  const subContainer = document.getElementById('bc-sub-selector');
+  const subOptions = document.getElementById('bc-sub-options');
+  const subs = BC_SUB_TYPES[bcSelectedMethod];
+
+  if (!subs || bcSelectedMethod === 'None') {
+    subContainer.classList.add('hidden');
+    bcSelectedSubType = null;
+    return;
+  }
+
+  subContainer.classList.remove('hidden');
+  subOptions.innerHTML = subs.map(s =>
+    `<button class="bc-sub-opt${s === bcSelectedSubType ? ' active' : ''}" data-sub="${s}">${s}</button>`
+  ).join('');
+}
 
 document.getElementById('btn-bc-change').addEventListener('click', () => {
   const selector = document.getElementById('bc-selector');
@@ -2086,7 +2120,9 @@ document.getElementById('btn-bc-change').addEventListener('click', () => {
   if (!selector.classList.contains('hidden')) {
     const bc = appData.settings.birth_control || { current: null, history: [] };
     bcSelectedMethod = bc.current ? bc.current.method : 'None';
+    bcSelectedSubType = bc.current ? (bc.current.sub_type || null) : null;
     updateBcGrid();
+    updateBcSubSelector();
     const dateRow = document.getElementById('bc-date-row');
     dateRow.classList.toggle('hidden', bcSelectedMethod === 'None');
     document.getElementById('bc-start-date').value = bc.current ? bc.current.start_date : fmtDate(new Date());
@@ -2102,9 +2138,22 @@ function updateBcGrid() {
 document.getElementById('bc-grid').addEventListener('click', e => {
   const btn = e.target.closest('.bc-opt');
   if (!btn) return;
+  haptic();
   bcSelectedMethod = btn.dataset.bc;
+  bcSelectedSubType = null;
   updateBcGrid();
+  updateBcSubSelector();
   document.getElementById('bc-date-row').classList.toggle('hidden', bcSelectedMethod === 'None');
+});
+
+document.getElementById('bc-sub-options').addEventListener('click', e => {
+  const btn = e.target.closest('.bc-sub-opt');
+  if (!btn) return;
+  haptic();
+  bcSelectedSubType = btn.dataset.sub;
+  document.querySelectorAll('#bc-sub-options .bc-sub-opt').forEach(b => {
+    b.classList.toggle('active', b.dataset.sub === bcSelectedSubType);
+  });
 });
 
 document.getElementById('btn-bc-save').addEventListener('click', async () => {
@@ -2115,6 +2164,7 @@ document.getElementById('btn-bc-save').addEventListener('click', async () => {
   if (bc.current && bc.current.method !== bcSelectedMethod) {
     bc.history.push({
       method: bc.current.method,
+      sub_type: bc.current.sub_type || null,
       start_date: bc.current.start_date,
       end_date: fmtDate(new Date())
     });
@@ -2124,7 +2174,7 @@ document.getElementById('btn-bc-save').addEventListener('click', async () => {
     bc.current = null;
   } else {
     const startDate = document.getElementById('bc-start-date').value || fmtDate(new Date());
-    bc.current = { method: bcSelectedMethod, start_date: startDate };
+    bc.current = { method: bcSelectedMethod, sub_type: bcSelectedSubType, start_date: startDate };
   }
 
   appData.settings.birth_control = bc;

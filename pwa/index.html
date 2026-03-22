@@ -384,15 +384,15 @@
           </div>
           <div class="log-section">
             <h3 class="section-label">Mood</h3>
-            <div class="chip-grid" id="mood-chips">
-              <button data-mood="Happy" class="chip">Happy</button>
-              <button data-mood="Calm" class="chip">Calm</button>
-              <button data-mood="Sensitive" class="chip">Sensitive</button>
-              <button data-mood="Anxious" class="chip">Anxious</button>
-              <button data-mood="Irritable" class="chip">Irritable</button>
-              <button data-mood="Sad" class="chip">Sad</button>
-              <button data-mood="MoodSwings" class="chip">Mood Swings</button>
-              <button data-mood="Energetic" class="chip">Energetic</button>
+            <div class="mood-grid" id="mood-chips">
+              <button data-mood="Happy" class="mood-pill"><span class="mood-emoji">&#x1F60A;</span><span class="mood-label">Happy</span></button>
+              <button data-mood="Calm" class="mood-pill"><span class="mood-emoji">&#x1F60C;</span><span class="mood-label">Calm</span></button>
+              <button data-mood="Sensitive" class="mood-pill"><span class="mood-emoji">&#x1F972;</span><span class="mood-label">Sensitive</span></button>
+              <button data-mood="Anxious" class="mood-pill"><span class="mood-emoji">&#x1F630;</span><span class="mood-label">Anxious</span></button>
+              <button data-mood="Irritable" class="mood-pill"><span class="mood-emoji">&#x1F624;</span><span class="mood-label">Irritable</span></button>
+              <button data-mood="Sad" class="mood-pill"><span class="mood-emoji">&#x1F614;</span><span class="mood-label">Sad</span></button>
+              <button data-mood="MoodSwings" class="mood-pill"><span class="mood-emoji">&#x1F3A2;</span><span class="mood-label">Swings</span></button>
+              <button data-mood="Energetic" class="mood-pill"><span class="mood-emoji">&#x26A1;</span><span class="mood-label">Energetic</span></button>
             </div>
           </div>
           <div class="log-section">
@@ -612,15 +612,19 @@
             </div>
             <div id="bc-selector" class="bc-selector hidden">
               <div class="bc-grid" id="bc-grid">
-                <button data-bc="None" class="bc-opt active">None</button>
-                <button data-bc="Pill" class="bc-opt">Pill</button>
-                <button data-bc="IUD" class="bc-opt">IUD</button>
-                <button data-bc="Implant" class="bc-opt">Implant</button>
-                <button data-bc="Patch" class="bc-opt">Patch</button>
-                <button data-bc="Ring" class="bc-opt">Ring</button>
-                <button data-bc="Shot" class="bc-opt">Shot</button>
-                <button data-bc="Condom" class="bc-opt">Condom</button>
-                <button data-bc="Natural" class="bc-opt">Natural</button>
+                <button data-bc="None" class="bc-opt active"><span class="bc-icon">&#x2205;</span><span class="bc-name">None</span></button>
+                <button data-bc="Pill" class="bc-opt"><span class="bc-icon">&#x1F48A;</span><span class="bc-name">Pill</span></button>
+                <button data-bc="IUD" class="bc-opt"><span class="bc-icon">&#x1FA7A;</span><span class="bc-name">IUD</span></button>
+                <button data-bc="Implant" class="bc-opt"><span class="bc-icon">&#x1FA78;</span><span class="bc-name">Implant</span></button>
+                <button data-bc="Patch" class="bc-opt"><span class="bc-icon">&#x1FA79;</span><span class="bc-name">Patch</span></button>
+                <button data-bc="Ring" class="bc-opt"><span class="bc-icon">&#x1F48D;</span><span class="bc-name">Ring</span></button>
+                <button data-bc="Shot" class="bc-opt"><span class="bc-icon">&#x1F489;</span><span class="bc-name">Shot</span></button>
+                <button data-bc="Condom" class="bc-opt"><span class="bc-icon">&#x1F6E1;</span><span class="bc-name">Condom</span></button>
+                <button data-bc="Natural" class="bc-opt"><span class="bc-icon">&#x1F33F;</span><span class="bc-name">Natural</span></button>
+              </div>
+              <div id="bc-sub-selector" class="bc-sub hidden">
+                <div class="bc-sub-label">Type</div>
+                <div class="bc-sub-options" id="bc-sub-options"></div>
               </div>
               <div id="bc-date-row" class="bc-date-row hidden">
                 <label class="bc-date-label">Started on</label>

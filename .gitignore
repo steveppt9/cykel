@@ -26,6 +26,7 @@ src-tauri/gen/
 # Planning docs & grant applications
 PLAN-*.md
 GRANT-*.md
+GRANT-*.docx
 
 # Claude
 .claude/
