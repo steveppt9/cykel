@@ -398,5 +398,455 @@ export const pandaKB = [
     keywords: ["alcohol", "drinking", "wine", "beer", "hangover", "drink"],
     answer: "Alcohol can temporarily raise estrogen levels, which might make your period heavier or more painful. It also dehydrates you (making cramps worse) and messes with sleep quality (which is already rough around your period). You don't have to skip it entirely, but maybe go easy during your period and drink extra water.",
     category: "lifestyle"
+  },
+
+  // ── Pregnancy — Trimesters & Symptoms ──────
+  {
+    id: "first-trimester",
+    q: "What happens in the first trimester?",
+    keywords: ["first trimester", "trimester", "weeks", "1-12", "early pregnancy", "beginning"],
+    answer: "The first trimester is weeks 1-12. This is when the heavy lifting happens — your baby's organs, brain, and nervous system start forming. You might feel nausea, exhaustion, sore boobs, and frequent peeing. It's also when morning sickness peaks (usually around weeks 6-9). Most miscarriages happen in this trimester, which is why many people wait to share the news. Take your prenatal vitamins and rest when you can.",
+    category: "pregnancy"
+  },
+  {
+    id: "second-trimester",
+    q: "What happens in the second trimester?",
+    keywords: ["second trimester", "13-26", "middle", "baby bump", "anatomy scan"],
+    answer: "Weeks 13-26 — often called the 'golden trimester' because morning sickness usually fades and energy comes back. You'll start showing, feel the baby move (usually around 18-22 weeks), and have your anatomy scan around week 20. New stuff to watch for: round ligament pain (sharp side pains from your uterus stretching), heartburn, and maybe some weird vivid dreams. Enjoy this part, it's usually the most comfortable stretch.",
+    category: "pregnancy"
+  },
+  {
+    id: "third-trimester",
+    q: "What happens in the third trimester?",
+    keywords: ["third trimester", "27-40", "final", "due date", "birth prep", "labor"],
+    answer: "Weeks 27-40 — the home stretch. Baby is gaining weight fast and you'll feel it. Expect back pain, trouble sleeping, Braxton Hicks contractions (practice contractions), swollen feet, and frequent bathroom trips because baby is sitting on your bladder. Start thinking about your birth plan, pack your hospital bag around week 35, and know the signs of real labor vs. false alarms. You're almost there.",
+    category: "pregnancy"
+  },
+  {
+    id: "morning-sickness",
+    q: "How do I deal with morning sickness?",
+    keywords: ["morning sickness", "nausea pregnancy", "throwing up", "vomiting pregnant", "sick pregnant"],
+    answer: "Morning sickness is the worst and the name is a lie — it can hit any time of day. Things that help: eat small frequent meals instead of big ones, keep crackers by your bed for before you get up, ginger (tea, candies, real ginger ale), stay hydrated with small sips, avoid strong smells. If you can't keep anything down for 24+ hours, call your doctor — that could be hyperemesis gravidarum and you might need treatment.",
+    category: "pregnancy"
+  },
+  {
+    id: "pregnancy-discharge",
+    q: "Is increased discharge normal during pregnancy?",
+    keywords: ["discharge pregnant", "pregnancy discharge", "leukorrhea", "mucus pregnant"],
+    answer: "Yes — increased thin, milky white discharge is totally normal during pregnancy. It's called leukorrhea and it helps protect the birth canal from infection. As long as it's not green, yellow, chunky, or foul-smelling, you're good. Near the end of pregnancy you might notice your mucus plug coming out (thick, jelly-like, sometimes tinged with blood) — that's a sign labor is approaching.",
+    category: "pregnancy"
+  },
+  {
+    id: "pregnancy-cramps",
+    q: "Are cramps normal during pregnancy?",
+    keywords: ["cramps pregnant", "cramping pregnancy", "abdominal pain pregnant", "contractions"],
+    answer: "Mild cramping in early pregnancy is common — it's usually your uterus stretching. In the second trimester, round ligament pain (sharp twinges on the sides) is also normal. Later on, Braxton Hicks contractions feel like tightening but aren't regular or increasingly painful. Call your doctor if cramps are severe, one-sided, come with bleeding, or feel like regular contractions before 37 weeks.",
+    category: "pregnancy"
+  },
+  {
+    id: "pregnancy-food",
+    q: "What foods should I avoid during pregnancy?",
+    keywords: ["food pregnant", "eat pregnancy", "avoid food", "safe food", "sushi pregnant", "caffeine pregnant"],
+    answer: "The big ones to avoid: raw or undercooked meat/fish/eggs, unpasteurized dairy (soft cheeses like brie), deli meats (listeria risk), high-mercury fish (swordfish, king mackerel, shark), raw sprouts, and limit caffeine to under 200mg/day (about one coffee). You don't have to be paranoid about every bite, but these are the evidence-based ones. Wash your produce, cook your meat, and enjoy eating — you're growing a human.",
+    category: "pregnancy"
+  },
+  {
+    id: "pregnancy-exercise",
+    q: "Can I exercise during pregnancy?",
+    keywords: ["exercise pregnant", "workout pregnancy", "gym pregnant", "safe exercise", "running pregnant"],
+    answer: "Absolutely — exercise during pregnancy is great for you and baby. Walking, swimming, prenatal yoga, and light strength training are all safe for most pregnancies. Avoid contact sports, lying flat on your back after the first trimester, and anything with a fall risk. If you were active before pregnancy, you can usually keep doing what you were doing (just dial it back as needed). If you weren't, start gentle. Always check with your provider first.",
+    category: "pregnancy"
+  },
+  {
+    id: "pregnancy-weight",
+    q: "How much weight should I gain during pregnancy?",
+    keywords: ["weight gain pregnant", "pregnancy weight", "gaining weight", "how much weight"],
+    answer: "General guidelines: if you started at a normal BMI, 25-35 lbs total is typical. Underweight folks might gain more, overweight folks might gain less. Most of the gain happens in the second and third trimesters. The weight isn't just baby — it's also placenta, amniotic fluid, extra blood, breast tissue, and fat stores for breastfeeding. Don't stress about the scale. Eat well, stay active, and your body will do what it needs to.",
+    category: "pregnancy"
+  },
+  {
+    id: "pregnancy-sleep",
+    q: "Why can't I sleep during pregnancy?",
+    keywords: ["sleep pregnant", "insomnia pregnancy", "sleeping position", "can't sleep pregnant"],
+    answer: "Pregnancy sleep gets rough, especially in the third trimester. Between the belly, back pain, heartburn, restless legs, and needing to pee every hour — it's a lot. Sleep on your side (left side is ideal for blood flow), use a pregnancy pillow between your knees, elevate your head for heartburn, and avoid screens before bed. Nap when you can. Your body is doing overtime and needs the rest, even if sleep quality isn't great.",
+    category: "pregnancy"
+  },
+  {
+    id: "braxton-hicks",
+    q: "What are Braxton Hicks contractions?",
+    keywords: ["braxton hicks", "practice contractions", "false labor", "tightening belly"],
+    answer: "Braxton Hicks are your uterus doing practice runs for labor. They feel like your belly tightening or hardening for 30 seconds to 2 minutes. They're irregular, don't get closer together, and usually stop if you change position or drink water. Real contractions get stronger, longer, and closer together over time and don't stop when you move around. If you're unsure, time them — if there's a pattern, call your provider.",
+    category: "pregnancy"
+  },
+  {
+    id: "signs-of-labor",
+    q: "How do I know if I'm in labor?",
+    keywords: ["labor", "contractions", "water broke", "birth", "delivery", "signs labor", "in labor"],
+    answer: "Signs of real labor: contractions that are regular (every 5 minutes), getting stronger, and lasting about a minute each. Your water might break (a gush or slow trickle of fluid). You might lose your mucus plug or have a 'bloody show' (pinkish discharge). Back pain that comes and goes with contractions is also common. General rule: 5-1-1 — contractions every 5 minutes, lasting 1 minute, for at least 1 hour. Call your provider when you hit that pattern.",
+    category: "pregnancy"
+  },
+  {
+    id: "gestational-diabetes",
+    q: "What is gestational diabetes?",
+    keywords: ["gestational diabetes", "glucose test", "blood sugar pregnant", "gd", "sugar pregnancy"],
+    answer: "Gestational diabetes develops during pregnancy when your body can't make enough insulin to handle the extra blood sugar. You'll be screened around weeks 24-28 with a glucose test. It doesn't mean you did anything wrong — hormonal changes cause it. Management usually involves monitoring blood sugar, adjusting your diet (lower sugar and refined carbs), staying active, and sometimes insulin. It usually goes away after delivery but increases your risk of type 2 diabetes later.",
+    category: "pregnancy"
+  },
+  {
+    id: "preeclampsia",
+    q: "What is preeclampsia?",
+    keywords: ["preeclampsia", "high blood pressure pregnant", "swelling pregnant", "toxemia"],
+    answer: "Preeclampsia is a serious pregnancy complication involving high blood pressure and organ damage, usually after 20 weeks. Warning signs: sudden severe swelling (face, hands), headaches that won't go away, vision changes (blurry, seeing spots), upper abdominal pain, and sudden weight gain. It can be dangerous for both you and baby. If you notice these symptoms, call your doctor immediately — it's not something to wait on. Regular prenatal visits catch it early through blood pressure checks.",
+    category: "pregnancy"
+  },
+  {
+    id: "pregnancy-mental-health",
+    q: "Is it normal to feel anxious or depressed during pregnancy?",
+    keywords: ["anxiety pregnant", "depression pregnancy", "mental health pregnant", "scared pregnant", "prenatal depression"],
+    answer: "Absolutely — prenatal anxiety and depression affect up to 1 in 5 pregnant people. Hormonal shifts, body changes, fear of labor, life changes, and sleep deprivation all contribute. It's not weakness and it's not something you should push through alone. Talk to your provider — therapy, support groups, and sometimes medication (many are safe during pregnancy) can help a lot. Your mental health matters as much as your physical health right now.",
+    category: "pregnancy"
+  },
+  {
+    id: "miscarriage",
+    q: "How common is miscarriage?",
+    keywords: ["miscarriage", "lost baby", "pregnancy loss", "bleeding early pregnancy", "chemical pregnancy"],
+    answer: "Miscarriage happens in about 10-20% of known pregnancies, and the actual rate is higher because many happen before someone even knows they're pregnant. Most occur in the first 12 weeks and are caused by chromosomal issues — nothing you did or didn't do. Signs include heavy bleeding, cramping, and passing tissue. If you're experiencing this, contact your doctor. And please be gentle with yourself — grief after miscarriage is real and valid, no matter how early it was.",
+    category: "pregnancy"
+  },
+
+  // ── Postpartum ─────────────────────────────
+  {
+    id: "postpartum-bleeding",
+    q: "How long do you bleed after giving birth?",
+    keywords: ["postpartum bleeding", "lochia", "after birth bleeding", "bleeding delivery", "post birth"],
+    answer: "Postpartum bleeding (lochia) typically lasts 4-6 weeks after delivery, whether vaginal or C-section. It starts heavy and bright red, then gradually lightens to pink, then brown, then yellowish-white. Use pads only — no tampons until your doctor clears you. If you're soaking through a pad in an hour, passing large clots (bigger than a golf ball), or the bleeding suddenly gets heavier after slowing down, call your doctor — that could signal a complication.",
+    category: "postpartum"
+  },
+  {
+    id: "postpartum-period",
+    q: "When does your period come back after birth?",
+    keywords: ["period after baby", "first period postpartum", "period return", "cycle after birth", "period breastfeeding"],
+    answer: "It depends on whether you're breastfeeding. If you're not, your period can come back as early as 6-8 weeks postpartum. If you're exclusively breastfeeding, it might not return for 6 months or longer — breastfeeding suppresses ovulation (but it's not reliable birth control!). When it does come back, your first few cycles might be irregular, heavier, or different from before. Your body's recalibrating — give it time.",
+    category: "postpartum"
+  },
+  {
+    id: "postpartum-depression",
+    q: "What is postpartum depression?",
+    keywords: ["postpartum depression", "ppd", "baby blues", "sad after birth", "depressed new mom", "crying after baby"],
+    answer: "Baby blues (mood swings, crying, anxiety in the first 2 weeks) affect up to 80% of new parents and usually pass on their own. Postpartum depression is deeper and lasts longer — persistent sadness, difficulty bonding with baby, feeling hopeless or worthless, loss of interest in things, changes in sleep/appetite beyond what's normal with a newborn. It can start anytime in the first year. It's not your fault, it's not a character flaw, and it's very treatable. Please talk to your doctor — you deserve support.",
+    category: "postpartum"
+  },
+  {
+    id: "postpartum-anxiety",
+    q: "Is postpartum anxiety a thing?",
+    keywords: ["postpartum anxiety", "ppa", "anxious new mom", "worried about baby", "intrusive thoughts", "can't stop worrying"],
+    answer: "Yes — postpartum anxiety (PPA) is actually more common than postpartum depression but gets way less attention. Signs include constant worry that something bad will happen to the baby, racing thoughts, difficulty sitting still, physical symptoms like a racing heart or nausea, and intrusive scary thoughts (which are NOT desires — they're anxiety). If worry is consuming your daily life and you can't relax even when baby is safe, talk to your provider. Treatment works and you're not going crazy.",
+    category: "postpartum"
+  },
+  {
+    id: "postpartum-body",
+    q: "When will my body go back to normal after pregnancy?",
+    keywords: ["body after baby", "postpartum body", "belly after birth", "recovery after pregnancy", "snap back"],
+    answer: "Real talk: your body grew a human — 'going back to normal' takes time and 'normal' might look different now. Your uterus takes about 6 weeks to shrink back. Abs might have separated (diastasis recti). Hips might be wider. Hair might thin around 3-6 months postpartum. The 'bounce back' culture is toxic — your body did something incredible. Focus on nourishing yourself, gentle movement when cleared by your doctor, and patience. Recovery is months, not weeks.",
+    category: "postpartum"
+  },
+  {
+    id: "postpartum-sex",
+    q: "When can I have sex after giving birth?",
+    keywords: ["sex after birth", "postpartum sex", "when sex after baby", "painful sex after birth", "intimacy postpartum"],
+    answer: "Most doctors recommend waiting at least 6 weeks to give your body time to heal (especially if you had stitches or a C-section). But '6 weeks' isn't a magic number — some people need longer. When you do, go slow, use plenty of lube (hormones and breastfeeding can cause dryness), and communicate with your partner. Pain during sex postpartum is common but shouldn't be severe — if it persists, mention it to your doctor. And use birth control — you can get pregnant before your period returns.",
+    category: "postpartum"
+  },
+  {
+    id: "breastfeeding-period",
+    q: "Does breastfeeding affect my cycle?",
+    keywords: ["breastfeeding", "nursing", "cycle breastfeeding", "period nursing", "lactation", "pumping"],
+    answer: "Yes — breastfeeding releases prolactin, which suppresses ovulation. If you're exclusively breastfeeding (no formula, no solids, feeding at least every 4 hours), your period might not return for 6-12+ months. But don't rely on it as birth control (lactational amenorrhea isn't foolproof). Once you start supplementing with formula or introducing solids, your period usually comes back within a few months. It might be irregular at first.",
+    category: "postpartum"
+  },
+  {
+    id: "postpartum-hair",
+    q: "Why is my hair falling out after having a baby?",
+    keywords: ["hair loss postpartum", "hair falling out", "postpartum hair", "shedding hair baby"],
+    answer: "During pregnancy, high estrogen keeps hair in its growth phase so it feels thicker and fuller. After birth, estrogen drops and all that extra hair sheds at once — usually around 3-6 months postpartum. It can be alarming (clumps in the shower) but it's temporary. You're not going bald, you're just losing the hair you would have normally shed over 9 months. It usually resolves by baby's first birthday. Biotin and a good diet can help, but mostly just patience.",
+    category: "postpartum"
+  },
+  {
+    id: "diastasis-recti",
+    q: "What is diastasis recti?",
+    keywords: ["diastasis recti", "ab separation", "belly gap", "stomach after pregnancy", "core postpartum"],
+    answer: "Diastasis recti is when the two sides of your abdominal muscles separate during pregnancy to make room for baby. About 60% of people have it postpartum. Signs: a visible bulge or 'cone' shape when you do a crunch, a gap you can feel above or below your belly button, lower back pain, or pelvic floor issues. Gentle core rehab exercises (not crunches — those can make it worse) can help a lot. A pelvic floor physical therapist is the gold standard for recovery. It's fixable.",
+    category: "postpartum"
+  },
+  {
+    id: "pelvic-floor",
+    q: "What's going on with my pelvic floor after birth?",
+    keywords: ["pelvic floor", "kegel", "incontinence", "peeing when sneeze", "leaking urine", "prolapse"],
+    answer: "Your pelvic floor just went through a lot — it supported a growing baby for 9 months and then stretched during delivery. Leaking pee when you sneeze, cough, or jump is super common postpartum but it's NOT something you have to just live with. Kegels help, but a pelvic floor physical therapist can assess what's actually going on and give you targeted exercises. If you feel heaviness or pressure in your vagina, mention it to your doctor — that could be mild prolapse, which is treatable.",
+    category: "postpartum"
+  },
+  {
+    id: "postpartum-rage",
+    q: "Is it normal to feel rage after having a baby?",
+    keywords: ["postpartum rage", "angry after baby", "rage new mom", "irritable postpartum", "anger after birth"],
+    answer: "Postpartum rage is real and more common than people talk about. It's often linked to postpartum depression or anxiety but can show up on its own — sudden intense anger over small things, feeling like you might snap, rage at your partner or the baby's crying. Sleep deprivation and hormonal shifts are huge factors. This doesn't make you a bad parent. It means your brain and body are under extreme stress. Talk to your provider — it's very treatable and you deserve to feel like yourself again.",
+    category: "postpartum"
+  },
+
+  // ── Sexual Health ──────────────────────────
+  {
+    id: "sex-drive-cycle",
+    q: "Does sex drive change during my cycle?",
+    keywords: ["sex drive", "libido", "horny", "desire", "arousal", "cycle sex"],
+    answer: "Totally — your sex drive fluctuates with your hormones throughout your cycle. Most people notice it peaks around ovulation (mid-cycle) when estrogen and testosterone are highest — your body's way of encouraging baby-making. It often dips in the luteal phase (PMS week) when progesterone dominates. During your period it varies — some people feel more into it, others not at all. All of this is normal and there's no 'right' amount of desire.",
+    category: "sexual-health"
+  },
+  {
+    id: "sti-symptoms",
+    q: "What are signs of an STI?",
+    keywords: ["sti", "std", "sexually transmitted", "infection", "chlamydia", "gonorrhea", "herpes"],
+    answer: "Many STIs have no symptoms at all, which is why testing is important if you're sexually active. But signs to watch for: unusual discharge (color, smell, amount), burning or pain when peeing, sores/bumps/blisters on or around your genitals, itching, pain during sex, or bleeding between periods. If you notice any of these, get tested — most STIs are easily treatable, especially when caught early. No shame, just healthcare.",
+    category: "sexual-health"
+  },
+  {
+    id: "uti-prevention",
+    q: "How do I prevent UTIs?",
+    keywords: ["uti", "urinary tract", "burning pee", "bladder infection", "peeing after sex"],
+    answer: "UTIs are annoyingly common, especially for people with vaginas. Prevention tips: pee after sex (flushes bacteria), wipe front to back, stay hydrated, don't hold your pee for hours, avoid douching or scented products down there, and wear cotton underwear. If you get them often, cranberry supplements (the D-mannose kind) might help. If you have burning, urgency, or cloudy/smelly pee, see your doctor — UTIs need antibiotics and won't go away on their own.",
+    category: "sexual-health"
+  },
+  {
+    id: "yeast-infection",
+    q: "How do I know if I have a yeast infection?",
+    keywords: ["yeast infection", "itchy", "candida", "thrush", "cottage cheese", "burning"],
+    answer: "Classic signs: thick white cottage-cheese-like discharge, intense itching and irritation around the vulva, burning during sex or peeing, and redness/swelling. They're caused by an overgrowth of candida (a fungus that normally lives there in small amounts). Antibiotics, hormonal changes, and high sugar diets can trigger them. OTC antifungal treatments work for most cases, but if it's your first time or keeps coming back, see your doctor to confirm it's actually yeast and not something else.",
+    category: "sexual-health"
+  },
+  {
+    id: "bv-what",
+    q: "What is bacterial vaginosis?",
+    keywords: ["bacterial vaginosis", "bv", "fishy smell", "gray discharge", "vaginal bacteria"],
+    answer: "BV happens when the balance of bacteria in your vagina gets thrown off — there's too much of certain bacteria and not enough of the good ones (lactobacillus). Signs: thin grayish-white discharge with a strong fishy smell (especially after sex), itching, and burning. It's the most common vaginal infection and it's NOT an STI — douching, new sex partners, or just bad luck can trigger it. It needs antibiotics, so see your doctor. Left untreated it can increase risk of other infections.",
+    category: "sexual-health"
+  },
+  {
+    id: "dryness",
+    q: "Why am I so dry down there?",
+    keywords: ["dry", "dryness", "vaginal dryness", "lubrication", "not wet", "lube"],
+    answer: "Vaginal dryness can happen for a bunch of reasons: hormonal changes (low estrogen, especially around your period, postpartum, or perimenopause), certain medications (antihistamines, antidepressants, birth control), dehydration, stress, or just not enough foreplay. It doesn't mean something's wrong with you or that you're not turned on. Water-based lube is your friend — there's zero shame in using it. If it's persistent, your doctor can check hormone levels.",
+    category: "sexual-health"
+  },
+
+  // ── Perimenopause ──────────────────────────
+  {
+    id: "perimenopause-what",
+    q: "What is perimenopause?",
+    keywords: ["perimenopause", "pre menopause", "before menopause", "transition", "menopause start"],
+    answer: "Perimenopause is the transition phase before menopause — it can start as early as your mid-30s but usually kicks in during your 40s. It's when your ovaries gradually produce less estrogen. Your periods might become irregular (shorter, longer, heavier, lighter, skipped), and you might get hot flashes, mood changes, sleep issues, and vaginal dryness. It can last 4-8 years. You're not in menopause until you've gone 12 full months without a period.",
+    category: "perimenopause"
+  },
+  {
+    id: "peri-symptoms",
+    q: "What are perimenopause symptoms?",
+    keywords: ["perimenopause symptoms", "hot flashes", "night sweats", "early menopause", "hormonal changes 40s"],
+    answer: "The hits include: irregular periods, hot flashes, night sweats, trouble sleeping, mood swings (hello, irritability), vaginal dryness, lower sex drive, brain fog, weight gain (especially around the middle), joint pain, and headaches. Not everyone gets all of them, and severity varies wildly. If symptoms are affecting your quality of life, talk to your doctor about treatment options — hormone therapy, lifestyle changes, and other meds can help a lot.",
+    category: "perimenopause"
+  },
+  {
+    id: "peri-periods",
+    q: "Why are my periods changing in my 40s?",
+    keywords: ["period 40s", "changing periods", "heavier period", "skipping periods", "irregular 40s"],
+    answer: "Welcome to perimenopause — your ovaries are starting to wind down estrogen production, which makes your cycles unpredictable. You might have shorter cycles, longer ones, skip months entirely, or have surprisingly heavy periods. Some months feel totally normal, then the next one's a surprise. This is all typical of the transition. But heavy bleeding that soaks through protection in an hour or periods lasting more than 7 days still warrants a doctor visit to rule out other causes.",
+    category: "perimenopause"
+  },
+  {
+    id: "hot-flashes",
+    q: "What can I do about hot flashes?",
+    keywords: ["hot flashes", "hot flush", "sweating", "overheating", "temperature", "night sweats"],
+    answer: "Hot flashes are sudden waves of heat, usually in your upper body and face, lasting 1-5 minutes. They're caused by fluctuating estrogen affecting your body's thermostat. What helps: dress in layers, keep a fan nearby, avoid triggers (spicy food, alcohol, caffeine, hot drinks), stay cool at night (cooling pillows, light sheets), exercise regularly, and manage stress. If they're disrupting your life, hormone therapy is the most effective treatment — talk to your doctor about whether it's right for you.",
+    category: "perimenopause"
+  },
+
+  // ── More Cycle & Symptoms ──────────────────
+  {
+    id: "ovulation-pain",
+    q: "Why does it hurt when I ovulate?",
+    keywords: ["ovulation pain", "mittelschmerz", "one-sided pain", "pain mid-cycle", "ovary pain"],
+    answer: "That sharp twinge or dull ache on one side of your lower belly mid-cycle is called mittelschmerz (German for 'middle pain'). It happens when the egg bursts through the ovarian follicle. Not everyone feels it, but for those who do, it can range from a brief pinch to several hours of discomfort. It usually alternates sides. A heating pad and OTC pain relief help. If the pain is severe or lasts more than a day, check with your doctor to rule out cysts or other issues.",
+    category: "fertility"
+  },
+  {
+    id: "clots-normal",
+    q: "Are blood clots during my period normal?",
+    keywords: ["clots", "blood clots", "chunks", "jelly", "thick blood", "tissue"],
+    answer: "Small clots (up to the size of a quarter) are totally normal, especially on heavy flow days. They form when blood pools in your uterus before being shed. Your body releases anticoagulants to keep blood flowing, but on heavier days it can't keep up — hence clots. If you're regularly passing clots larger than a quarter or the size of a golf ball, that's worth mentioning to your doctor, as it could signal heavy menstrual bleeding that might need treatment.",
+    category: "cycle-basics"
+  },
+  {
+    id: "period-frequency",
+    q: "Why am I getting my period twice a month?",
+    keywords: ["twice a month", "two periods", "short cycle", "frequent periods", "period again"],
+    answer: "If your cycles are on the shorter end (21-24 days), you might get your period twice in one calendar month — that's technically normal. But if it's a new pattern, it could be caused by stress, hormonal shifts, thyroid issues, perimenopause, or certain birth control. Mid-cycle spotting can also look like a second period but it's not. If this keeps happening and it's new for you, check in with your doctor to make sure everything's okay.",
+    category: "cycle-basics"
+  },
+  {
+    id: "period-lighter",
+    q: "Why is my period suddenly lighter?",
+    keywords: ["light period", "barely there", "scanty", "less blood", "lighter period", "hardly bleeding"],
+    answer: "A lighter period can happen for lots of reasons: stress, weight changes, new birth control (hormonal methods often lighten periods), excessive exercise, thyroid issues, or just natural variation. If you're sexually active and your period is unusually light, it's worth taking a pregnancy test — implantation bleeding can be mistaken for a light period. One light cycle isn't concerning, but if it persists or you're worried, check with your doctor.",
+    category: "cycle-basics"
+  },
+  {
+    id: "water-intake",
+    q: "Does drinking water help with my period?",
+    keywords: ["water", "hydration", "drinking water", "dehydrated", "water intake"],
+    answer: "Yes — staying hydrated can genuinely help with period symptoms. Water reduces bloating (counterintuitive but true — dehydration makes your body hold onto water), eases cramps (dehydration can make uterine contractions more painful), helps with headaches, and keeps your energy up. Aim for at least 8 glasses a day, more during your period. Herbal teas count too. If plain water is boring, add some fruit or try sparkling water.",
+    category: "lifestyle"
+  },
+  {
+    id: "period-weight",
+    q: "Why do I gain weight on my period?",
+    keywords: ["weight period", "gain weight", "bloated scale", "heavier period", "water weight"],
+    answer: "Period weight gain is almost always water retention, not fat. Hormonal changes (especially rising progesterone) cause your body to hold onto extra water — anywhere from 1-5 lbs. It usually peaks in the first day or two of your period and goes away by the end. Cravings and eating more in the luteal phase can also contribute. Don't weigh yourself during your period if the number stresses you out — it's temporary and it's water.",
+    category: "lifestyle"
+  },
+  {
+    id: "period-poop",
+    q: "Why do my bowel habits change on my period?",
+    keywords: ["poop period", "constipation before", "diarrhea during", "bowel changes", "period stomach"],
+    answer: "Before your period, progesterone slows down your digestive system, leading to constipation and gas. Once your period starts, prostaglandins kick in to make your uterus contract — but they also hit your intestines, causing cramps, diarrhea, and more frequent bathroom trips. It's completely normal and very common. Eating fiber-rich foods, staying hydrated, and gentle movement can help regulate things. Period poops are real and you're not alone.",
+    category: "symptoms"
+  },
+  {
+    id: "iron-deficiency",
+    q: "Can my period cause iron deficiency?",
+    keywords: ["iron", "anemia", "iron deficiency", "low iron", "tired period", "pale"],
+    answer: "Yes — heavy periods are one of the most common causes of iron deficiency anemia in people who menstruate. Signs include fatigue, weakness, pale skin, dizziness, cold hands and feet, and shortness of breath. If your periods are heavy and you're constantly tired, ask your doctor for a blood test. Iron supplements, iron-rich foods (red meat, spinach, lentils, fortified cereals), and vitamin C (helps absorption) can help. Don't self-diagnose though — too much iron is also bad.",
+    category: "symptoms"
+  },
+  {
+    id: "hormonal-acne",
+    q: "How do I deal with hormonal acne?",
+    keywords: ["hormonal acne", "chin acne", "jawline breakout", "period acne", "cycle breakout"],
+    answer: "Hormonal acne typically shows up along the chin and jawline and flares before your period when progesterone spikes oil production. A consistent skincare routine helps — gentle cleanser, salicylic acid or benzoyl peroxide, moisturizer, SPF. Don't pick (I know). For persistent hormonal acne, a derm might suggest retinoids, spironolactone, or birth control pills that regulate hormones. It's not a hygiene problem — it's hormonal, and targeted treatment works way better than just washing your face more.",
+    category: "symptoms"
+  },
+  {
+    id: "leg-cramps-period",
+    q: "Why do my legs hurt during my period?",
+    keywords: ["leg pain", "leg cramps", "thigh pain", "legs ache", "period legs"],
+    answer: "Prostaglandins (the same chemicals that cause uterine cramps) can affect other muscles too, including your thighs and legs. Pain can radiate from your lower back and pelvis down your legs. Iron deficiency from heavy periods can also cause restless or achy legs. Heat, gentle stretching, anti-inflammatories, and magnesium supplements can help. If leg pain is severe, one-sided, or involves swelling, see your doctor to rule out other causes.",
+    category: "symptoms"
+  },
+
+  // ── Fertility — deeper ────────────────────
+  {
+    id: "luteal-phase",
+    q: "What is the luteal phase?",
+    keywords: ["luteal phase", "after ovulation", "two week wait", "tww", "second half cycle"],
+    answer: "The luteal phase is the second half of your cycle — from ovulation to the start of your next period, usually 10-16 days. During this time, progesterone rises to prepare your uterus for a potential pregnancy. If no egg implants, progesterone drops and your period starts. A luteal phase shorter than 10 days can make it harder to get pregnant (luteal phase defect). PMS symptoms happen in this phase because of the hormonal shifts.",
+    category: "fertility"
+  },
+  {
+    id: "fertility-age",
+    q: "Does age affect fertility?",
+    keywords: ["age fertility", "getting older", "egg quality", "fertility decline", "freezing eggs", "biological clock"],
+    answer: "Fertility does decline with age — gradually in your early 30s, more noticeably after 35, and significantly after 40. This is mainly about egg quantity and quality. But it's not a cliff — plenty of people conceive naturally in their late 30s and 40s. If you're thinking about future fertility, egg freezing is an option (best done before 35). If you're actively trying and it's been 6+ months (under 35) or 3+ months (over 35), see a fertility specialist. Everyone's timeline is different.",
+    category: "fertility"
+  },
+  {
+    id: "bbt-tracking",
+    q: "What is basal body temperature tracking?",
+    keywords: ["bbt", "basal body temperature", "temperature tracking", "thermometer", "temp charting"],
+    answer: "BBT tracking means taking your temperature first thing every morning before getting out of bed. After ovulation, progesterone causes your temperature to rise by about 0.2-0.5°F and stay elevated until your period. This shift confirms ovulation happened (but only after the fact). You need a BBT thermometer (measures to two decimal places) and consistent timing. It's useful for understanding your cycle but not great for predicting ovulation in real-time — by the time your temp rises, the fertile window has passed.",
+    category: "fertility"
+  },
+  {
+    id: "fertility-supplements",
+    q: "Do fertility supplements work?",
+    keywords: ["fertility supplements", "conceive plus", "coq10", "myo-inositol", "prenatal vitamin", "folic acid"],
+    answer: "Some have evidence behind them: folic acid (prevents neural tube defects — start before trying), CoQ10 (may improve egg quality, especially 35+), myo-inositol (helps with PCOS-related fertility), vitamin D (low levels linked to lower fertility), and omega-3s. Prenatal vitamins are a must. But no supplement replaces medical evaluation if you're struggling to conceive. Be skeptical of anything marketed as a miracle — if it sounds too good to be true, it probably is. Talk to your doctor about what makes sense for you.",
+    category: "fertility"
+  },
+
+  // ── Conditions — deeper ────────────────────
+  {
+    id: "fibroids",
+    q: "What are fibroids?",
+    keywords: ["fibroids", "uterine fibroids", "myoma", "growths uterus", "heavy bleeding fibroids"],
+    answer: "Fibroids are non-cancerous growths in or on the uterus — super common, affecting up to 80% of people with uteruses by age 50. Many people have them and never know. But they can cause heavy/long periods, pelvic pain or pressure, frequent urination, and sometimes fertility issues. Treatment depends on symptoms and can range from medication to minimally invasive procedures to surgery. If your periods have gotten dramatically heavier, fibroids are one of the first things your doctor will check for.",
+    category: "conditions"
+  },
+  {
+    id: "thyroid-periods",
+    q: "Can my thyroid affect my period?",
+    keywords: ["thyroid", "hypothyroid", "hyperthyroid", "thyroid period", "tsh"],
+    answer: "Absolutely — your thyroid controls a lot of your body's hormonal balance. An underactive thyroid (hypothyroidism) can cause heavier, longer, or more frequent periods, fatigue, weight gain, and difficulty conceiving. An overactive thyroid (hyperthyroidism) can cause lighter, less frequent, or missed periods, anxiety, and weight loss. If your periods are off and you're also dealing with unexplained fatigue, weight changes, or mood shifts, ask your doctor to check your thyroid — it's a simple blood test.",
+    category: "conditions"
+  },
+  {
+    id: "ovarian-cysts",
+    q: "What are ovarian cysts?",
+    keywords: ["cyst", "ovarian cyst", "cyst pain", "ruptured cyst", "ovary cyst"],
+    answer: "Ovarian cysts are fluid-filled sacs on your ovaries. Most are functional cysts that form during ovulation and go away on their own within a few cycles — you might never know they're there. But sometimes they grow larger and cause dull aching pain, bloating, or pain during sex. A ruptured cyst can cause sudden sharp pain (it hurts but usually resolves on its own). If you have sudden severe pelvic pain, especially with dizziness or fever, seek medical attention. An ultrasound can check the size and type.",
+    category: "conditions"
+  },
+  {
+    id: "adenomyosis",
+    q: "What is adenomyosis?",
+    keywords: ["adenomyosis", "heavy painful periods", "enlarged uterus", "endometrium growing"],
+    answer: "Adenomyosis is when the tissue that normally lines your uterus (endometrium) grows into the muscular wall of the uterus. It causes heavy, prolonged periods, severe cramps, bloating, and a feeling of pressure or fullness. It's similar to endometriosis but the tissue grows inward instead of outward. It's more common in your 30s-40s and after having children. Diagnosis is usually by ultrasound or MRI. Treatment options include medication, hormonal IUDs, or in severe cases, hysterectomy.",
+    category: "conditions"
+  },
+  {
+    id: "cervical-health",
+    q: "How often should I get a Pap smear?",
+    keywords: ["pap smear", "cervical", "hpv", "screening", "gynecologist", "pap test"],
+    answer: "Current guidelines: start Pap smears at age 21. Ages 21-29, get one every 3 years. Ages 30-65, every 3 years (Pap alone) or every 5 years (Pap + HPV co-test). After 65, you may be able to stop if your results have been consistently normal. HPV vaccination (available up to age 45) significantly reduces cervical cancer risk. Regular screening catches abnormal cells early when they're easily treatable. It's not the most fun appointment but it's important.",
+    category: "conditions"
+  },
+
+  // ── More Lifestyle ─────────────────────────
+  {
+    id: "stress-period",
+    q: "Can stress delay my period?",
+    keywords: ["stress", "stressed", "period delayed", "stress period", "anxiety period", "late stress"],
+    answer: "100% yes. Stress is one of the most common reasons for a late or missed period. When you're stressed, your body produces cortisol, which can suppress the hormones that trigger ovulation. No ovulation = delayed period. Big life changes, exams, work pressure, grief, travel — all of it counts. Once the stress eases, your cycle usually gets back on track. If your period is MIA for 3+ months and you're not pregnant, check in with your doctor.",
+    category: "lifestyle"
+  },
+  {
+    id: "weed-period",
+    q: "Does weed affect my period?",
+    keywords: ["weed", "marijuana", "cannabis", "thc", "cbd", "smoking period"],
+    answer: "Research is still catching up, but there's some evidence that regular cannabis use can affect your cycle — potentially making periods irregular, suppressing ovulation, or altering cycle length. THC interacts with your endocannabinoid system, which plays a role in reproductive hormones. Some people use CBD for cramp relief (limited evidence but anecdotal support). If you're trying to conceive, it's best to avoid it. If you notice cycle changes and you're a regular user, it could be a factor worth discussing with your doctor.",
+    category: "lifestyle"
+  },
+  {
+    id: "diet-period",
+    q: "Does diet affect my period?",
+    keywords: ["diet", "food period", "eating", "nutrition", "vegan period", "weight loss period"],
+    answer: "Yes — what you eat affects your hormones, which affect your cycle. Extreme calorie restriction or crash diets can make your period disappear (your body shuts down non-essential functions to conserve energy). Very low body fat can do the same. On the flip side, a balanced diet with enough iron, healthy fats, and whole grains supports regular cycles. Anti-inflammatory foods (berries, leafy greens, fatty fish, turmeric) can help with cramps and PMS. You don't need a perfect diet — just consistent nourishment.",
+    category: "lifestyle"
+  },
+  {
+    id: "travel-period",
+    q: "Can travel mess up my period?",
+    keywords: ["travel", "jet lag", "time zone", "vacation period", "flying period"],
+    answer: "Yep — travel, especially across time zones, can throw off your cycle. Jet lag disrupts your circadian rhythm, which can delay ovulation and push your period back. Stress of travel, changes in routine, diet, and sleep also contribute. It's usually temporary — one or two cycles might be off, then things normalize. If you're traveling during your period, bring extra supplies and consider that your prediction might be a day or two off. Your body's adaptable, just give it time.",
+    category: "lifestyle"
+  },
+  {
+    id: "period-products",
+    q: "What period products are available?",
+    keywords: ["period products", "pad", "tampon", "cup", "disc", "period underwear", "options"],
+    answer: "So many options now: disposable pads and tampons (the classics), menstrual cups (reusable, 12-hour wear), menstrual discs (sit higher, can be worn during sex), period underwear (absorbent built-in liner), reusable cloth pads, and free-bleeding (no product). There's no single best choice — it depends on your flow, comfort, lifestyle, and budget. Many people use different products for different days. Try a few and see what works for your body. The sustainable options (cups, discs, period underwear) also save money long-term.",
+    category: "lifestyle"
+  },
+  {
+    id: "swimming-period",
+    q: "Can I swim on my period?",
+    keywords: ["swimming", "pool", "ocean", "beach", "water period", "swim"],
+    answer: "Absolutely — water pressure actually slows your flow while you're in it (it doesn't stop completely but it's minimal). Use a tampon, menstrual cup, or menstrual disc while swimming. Pads won't work in water (they'll absorb pool water). Change your tampon after swimming. The water isn't going to turn red, and no one will know. Chlorine keeps pools sanitary. Don't let your period stop you from swimming — it's actually great exercise for cramps.",
+    category: "lifestyle"
   }
 ];
