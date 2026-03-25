@@ -1153,6 +1153,7 @@ function renderCalendar() {
   if (!appData) return;
 
   renderPhaseCard();
+  renderPandaChips();
 
   monthTitle.textContent = MONTH_NAMES[currentMonth];
   monthYear.textContent = currentYear;
@@ -2934,49 +2935,93 @@ const PANDA_HINTS = {
     'Can I swim on my period?',
     'Is it normal to get clots?',
     'Why do I poop more on my period?',
-    'Period headaches — why?'
+    'Period headaches — why?',
+    'Why does my back hurt?',
+    'Does alcohol make it worse?',
+    'Why am I so tired?',
+    'Can I exercise right now?',
+    'Is nausea normal during periods?',
+    'Why is my period blood dark?',
+    'How do I deal with cramps?'
   ],
   luteal: [
     'Why am I so bloated?',
     'Cravings are wild — is that normal?',
     'Why are my mood swings so intense?',
     'Can\'t sleep before my period',
-    'Breakout on my chin again'
+    'Breakout on my chin again',
+    'Why do my boobs hurt?',
+    'What is PMS exactly?',
+    'Why am I so emotional rn?',
+    'Hormonal acne help',
+    'Why am I gaining weight?',
+    'What is the luteal phase?',
+    'Can stress delay my period?'
   ],
   fertile: [
     'When am I most fertile?',
     'What does egg white discharge mean?',
     'Can I get pregnant right now?',
     'What is ovulation exactly?',
-    'Ovulation pain — is that normal?'
+    'Ovulation pain — is that normal?',
+    'How do I know when I\'m ovulating?',
+    'Does sex drive change mid-cycle?',
+    'What is BBT tracking?',
+    'Do fertility supplements work?',
+    'How does age affect fertility?'
   ],
   late: [
     'Why is my period late?',
     'Should I take a pregnancy test?',
     'Can stress delay my period?',
     'What are early pregnancy symptoms?',
-    'Late period but negative test?'
+    'Late period but negative test?',
+    'What is implantation bleeding?',
+    'Could I be pregnant?',
+    'When is a test accurate?',
+    'I haven\'t had my period in months'
   ],
   pregnancy: [
     'What size is my baby this week?',
     'Is this cramping normal?',
     'What foods should I avoid?',
     'Morning sickness help',
-    'Can I exercise during pregnancy?'
+    'Can I exercise during pregnancy?',
+    'What are Braxton Hicks?',
+    'How do I know if I\'m in labor?',
+    'What is gestational diabetes?',
+    'How much weight should I gain?',
+    'Feeling anxious — is that normal?',
+    'What is preeclampsia?',
+    'Why can\'t I sleep?'
   ],
   postpartum: [
     'When does my period come back?',
     'Is postpartum anxiety a thing?',
     'Why is my hair falling out?',
     'When can I have sex after birth?',
-    'What is diastasis recti?'
+    'What is diastasis recti?',
+    'What is postpartum depression?',
+    'How long do you bleed after birth?',
+    'Does breastfeeding affect my cycle?',
+    'Postpartum rage — is that real?',
+    'What is the postpartum period?',
+    'Pelvic floor — what now?',
+    'When will my body feel normal?'
   ],
   default: [
     'Ask me anything about your cycle',
     'Is my discharge normal?',
     'When should I see a doctor?',
     'What\'s a normal cycle length?',
-    'How does birth control affect me?'
+    'How does birth control affect me?',
+    'What is PCOS?',
+    'Can my thyroid affect my period?',
+    'How do I prevent UTIs?',
+    'What period products are there?',
+    'Does diet affect my period?',
+    'Is it normal for sex to be painful?',
+    'Why is Cykel open source?'
   ]
 };
 
@@ -3039,6 +3084,34 @@ function showPandaHint() {
     }
   }, 8000);
 }
+
+// Contextual smart chips on calendar
+function renderPandaChips() {
+  const container = document.getElementById('panda-chips');
+  if (!container || !appData) return;
+
+  const phase = getCyclePhaseForHint();
+  const pool = PANDA_HINTS[phase] || PANDA_HINTS.default;
+
+  // Shuffle and pick 8
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const chips = shuffled.slice(0, 8);
+
+  container.innerHTML = chips.map(q =>
+    `<button class="panda-smart-chip" data-question="${q.replace(/"/g, '&quot;')}">${q}</button>`
+  ).join('');
+  container.classList.remove('hidden');
+}
+
+// Smart chip click → open panda with that question
+document.getElementById('panda-chips').addEventListener('click', (e) => {
+  const chip = e.target.closest('.panda-smart-chip');
+  if (!chip) return;
+  haptic('light');
+  pandaPendingQuestion = chip.dataset.question;
+  document.getElementById('panda-hint').classList.add('hidden');
+  openPandaChat();
+});
 
 // Hint bubble click → open panda with pre-filled question
 document.getElementById('panda-hint').addEventListener('click', () => {
