@@ -516,6 +516,13 @@ export const pandaKB = [
 
   // ── Postpartum ─────────────────────────────
   {
+    id: "postpartum-what",
+    q: "What is the postpartum period?",
+    keywords: ["postpartum", "what is postpartum", "after birth", "fourth trimester", "post pregnancy", "after delivery", "after baby"],
+    answer: "Postpartum (also called the 'fourth trimester') is the period after giving birth — generally the first 6-12 weeks, though recovery can take much longer. Your body is healing from pregnancy and delivery, hormones are shifting dramatically, and you're adjusting to life with a newborn. Common experiences include vaginal bleeding (lochia), breast engorgement, mood swings, exhaustion, and body changes. It's a lot — physically and emotionally. Be patient with yourself and don't hesitate to ask for help or talk to your doctor about anything that worries you.",
+    category: "postpartum"
+  },
+  {
     id: "postpartum-bleeding",
     q: "How long do you bleed after giving birth?",
     keywords: ["postpartum bleeding", "lochia", "after birth bleeding", "bleeding delivery", "post birth"],
