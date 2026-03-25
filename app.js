@@ -120,6 +120,53 @@ let selectedEnergy = null;
 let selectedSleep = null;
 let selectedExercise = null;
 
+// Weekly pregnancy milestones — fruit size comparison + development facts
+const PREGNANCY_WEEKS = {
+  0:  { emoji: '🌱', name: 'Just beginning', size: 'Tiny cluster of cells', fact: 'Fertilization just happened — a single cell is dividing rapidly into what will become your baby.' },
+  1:  { emoji: '🌱', name: 'Just beginning', size: 'Tiny cluster of cells', fact: 'Your body is preparing the uterine lining for implantation.' },
+  2:  { emoji: '🌱', name: 'Just beginning', size: 'Tiny cluster of cells', fact: 'Ovulation and conception typically happen around now.' },
+  3:  { emoji: '🌱', name: 'Implantation', size: 'Smaller than a grain of sand', fact: 'The fertilized egg is burrowing into your uterine lining. You might notice light spotting.' },
+  4:  { emoji: '🌰', name: 'Poppy seed', size: '~1mm', fact: 'A positive test is possible now. The embryo is forming its neural tube, which becomes the brain and spine.' },
+  5:  { emoji: '🫘', name: 'Sesame seed', size: '~2mm', fact: 'The heart is forming and will start beating this week. Tiny buds are appearing where arms and legs will grow.' },
+  6:  { emoji: '🫐', name: 'Blueberry', size: '~6mm', fact: 'The heart is beating about 110 times per minute. Facial features are starting to form — little dots for eyes and nostrils.' },
+  7:  { emoji: '🫐', name: 'Raspberry', size: '~1.3cm', fact: 'Hands and feet are forming with tiny webbed fingers. The brain is growing rapidly — about 100 new brain cells every minute.' },
+  8:  { emoji: '🫒', name: 'Olive', size: '~1.6cm', fact: 'Baby is officially called a fetus now. Fingers and toes are separating and tiny eyelids are forming.' },
+  9:  { emoji: '🍇', name: 'Grape', size: '~2.3cm', fact: 'All major organs are in place. Baby is starting to make tiny movements — too small for you to feel yet.' },
+  10: { emoji: '🍓', name: 'Strawberry', size: '~3cm', fact: 'Fingernails and toenails are starting to develop. Baby can now bend their tiny limbs.' },
+  11: { emoji: '🫐', name: 'Fig', size: '~4cm', fact: 'Baby\'s bones are starting to harden and tooth buds are forming under the gums.' },
+  12: { emoji: '🍋', name: 'Lime', size: '~5.4cm', fact: 'End of the first trimester! Baby\'s reflexes are developing — they can open and close their fists.' },
+  13: { emoji: '🍋', name: 'Lemon', size: '~7.4cm', fact: 'Welcome to the second trimester. Baby has fingerprints now and vocal cords are forming.' },
+  14: { emoji: '🍑', name: 'Peach', size: '~8.7cm', fact: 'Baby is making facial expressions — squinting, frowning, grimacing. They\'re practicing for all those cute faces.' },
+  15: { emoji: '🍎', name: 'Apple', size: '~10cm', fact: 'Baby can sense light through the eyelids and is developing a fine layer of hair called lanugo.' },
+  16: { emoji: '🥑', name: 'Avocado', size: '~11.6cm', fact: 'Baby can hear sounds now — your heartbeat, your voice, your stomach growling. They\'re listening.' },
+  17: { emoji: '🍐', name: 'Pear', size: '~13cm', fact: 'Fat is starting to form under baby\'s skin. The umbilical cord is getting thicker and stronger.' },
+  18: { emoji: '🫑', name: 'Bell pepper', size: '~14.2cm', fact: 'If you haven\'t felt movement yet, you might this week — little flutters called "quickening."' },
+  19: { emoji: '🥭', name: 'Mango', size: '~15.3cm', fact: 'A waxy coating called vernix is forming to protect baby\'s skin in the amniotic fluid.' },
+  20: { emoji: '🍌', name: 'Banana', size: '~25cm head to toe', fact: 'Halfway there! Baby can swallow and is gulping amniotic fluid. Anatomy scan week — you might learn the sex.' },
+  21: { emoji: '🥕', name: 'Carrot', size: '~27cm', fact: 'Baby\'s taste buds are working — they can taste what you eat through the amniotic fluid.' },
+  22: { emoji: '🌽', name: 'Corn on the cob', size: '~28cm', fact: 'Eyebrows and eyelashes are now visible. Baby looks more and more like a tiny human.' },
+  23: { emoji: '🥝', name: 'Grapefruit', size: '~29cm', fact: 'Baby can hear outside noises now. Play them some music — they might respond with a kick.' },
+  24: { emoji: '🌶️', name: 'Ear of corn', size: '~30cm', fact: 'Lungs are developing tiny air sacs. Baby has a regular sleep-wake cycle (probably opposite yours).' },
+  25: { emoji: '🥦', name: 'Cauliflower', size: '~35cm', fact: 'Baby is gaining about 6 oz per week now. They can respond to your voice and familiar sounds.' },
+  26: { emoji: '🥬', name: 'Lettuce head', size: '~36cm', fact: 'Eyes are opening for the first time. Baby can now see light filtering through your belly.' },
+  27: { emoji: '🥒', name: 'Cucumber', size: '~37cm', fact: 'Baby is inhaling and exhaling amniotic fluid — practice breathing. The brain is very active now.' },
+  28: { emoji: '🍆', name: 'Eggplant', size: '~38cm', fact: 'Welcome to the third trimester! Baby can blink, dream during REM sleep, and has their own immune system starting up.' },
+  29: { emoji: '🎃', name: 'Acorn squash', size: '~39cm', fact: 'Baby is getting stronger — kicks might actually make you jump. Muscles and lungs continue maturing.' },
+  30: { emoji: '🥥', name: 'Coconut', size: '~40cm', fact: 'Baby\'s brain is developing rapidly with billions of neurons. They can now regulate their own body temperature somewhat.' },
+  31: { emoji: '🥥', name: 'Coconut', size: '~41cm', fact: 'Baby is processing information from all five senses. They can turn their head to follow a light source.' },
+  32: { emoji: '🍈', name: 'Squash', size: '~42cm', fact: 'Toenails have arrived. Baby is practicing breathing, grasping, and sucking — getting ready for the outside world.' },
+  33: { emoji: '🍍', name: 'Pineapple', size: '~44cm', fact: 'Baby\'s bones are hardening but the skull stays flexible for delivery. They\'re running out of room in there.' },
+  34: { emoji: '🍍', name: 'Pineapple', size: '~45cm', fact: 'Baby\'s central nervous system and lungs are maturing. Fat layers are filling out those adorable chubby cheeks.' },
+  35: { emoji: '🍈', name: 'Honeydew', size: '~46cm', fact: 'Most babies are head-down by now, getting into position. Kidneys are fully developed.' },
+  36: { emoji: '🥬', name: 'Romaine lettuce', size: '~47cm', fact: 'Baby is shedding most of the lanugo hair and vernix coating. You might notice them hiccuping.' },
+  37: { emoji: '🥬', name: 'Swiss chard', size: '~48cm', fact: 'Baby is now considered "early term." They\'re practicing breathing and can firmly grasp a finger.' },
+  38: { emoji: '🍉', name: 'Mini watermelon', size: '~50cm', fact: 'Baby\'s organs are ready for life outside. They\'re producing surfactant to help lungs expand after birth.' },
+  39: { emoji: '🍉', name: 'Watermelon', size: '~51cm', fact: 'Baby\'s brain and lungs are still maturing right up to delivery. The average baby is about 7-8 lbs now.' },
+  40: { emoji: '🍉', name: 'Watermelon', size: '~51cm, ~7.5 lbs', fact: 'Due date week! Baby is fully developed and ready to meet you. Only 5% of babies arrive on their exact due date — yours will come when they\'re ready.' },
+  41: { emoji: '🍉', name: 'Watermelon+', size: '~52cm', fact: 'A little past due — totally normal. Your doctor will monitor closely. Baby is still growing and gaining about half an ounce per day.' },
+  42: { emoji: '🍉', name: 'Watermelon+', size: '~52cm', fact: 'Your doctor will likely discuss induction options. Baby is fully cooked — just taking their sweet time.' }
+};
+
 function defaultAppData() {
   return {
     cycles: [], day_logs: [], symptoms: [],
@@ -653,6 +700,8 @@ function enterApp() {
   appMode = appData.settings.mode || 'tracking';
   updateModeSelector();
   renderBirthControl();
+  renderColorCustomizer();
+  applyCustomColors();
 
   showScreen('calendar');
   renderCalendar();
@@ -1173,11 +1222,21 @@ function renderCalendar() {
     const daysExtra = daysPregnant % 7;
 
     if (weeksPregnant >= 0 && weeksPregnant <= 42) {
-      document.getElementById('preg-week-num').textContent = weeksPregnant;
+      const milestone = PREGNANCY_WEEKS[Math.min(weeksPregnant, 42)] || PREGNANCY_WEEKS[42];
 
-      const trimester = weeksPregnant < 13 ? '1st trimester' : weeksPregnant < 27 ? '2nd trimester' : '3rd trimester';
-      document.getElementById('preg-status').textContent = `${trimester} · ${weeksPregnant}w ${daysExtra}d`;
-      document.getElementById('preg-due').textContent = `Due ${fmtDatePretty(dueDate)}`;
+      document.getElementById('preg-week-num').textContent = weeksPregnant;
+      document.getElementById('preg-fruit').textContent = milestone.emoji;
+      document.getElementById('preg-status').textContent = milestone.name;
+      document.getElementById('preg-size-label').textContent = milestone.size;
+      document.getElementById('preg-fact').textContent = milestone.fact;
+
+      const daysLeft = daysBetweenDates(today, dueDate);
+      const progressPct = Math.min(100, Math.max(0, Math.round((daysPregnant / 280) * 100)));
+      document.getElementById('preg-due').textContent = daysLeft > 0
+        ? `${daysLeft} days until due date · ${fmtDatePretty(dueDate)}`
+        : daysLeft === 0 ? `Due today!` : `${Math.abs(daysLeft)} days past due date`;
+      document.getElementById('preg-progress-fill').style.width = progressPct + '%';
+
       pregnancyCard.classList.remove('hidden');
     }
 
@@ -2184,6 +2243,112 @@ document.getElementById('btn-bc-save').addEventListener('click', async () => {
 });
 
 // ============================================
+// Color Customizer
+// ============================================
+
+const COLOR_PALETTES = {
+  period:   ['#C4654A', '#E85D75', '#D94F8A', '#B35840', '#E8849B', '#C94040', '#D97B4A', '#8B4A6B'],
+  spotting: ['#F0DDD7', '#F5C4D0', '#E8D0C8', '#F0C8B8', '#FBE2E0', '#D4B8C8', '#F2D0E0', '#E0C4B0'],
+  symptoms: ['#8BA889', '#6BAF8D', '#7BC4A0', '#5A9E78', '#A3C4A0', '#68A090', '#4A8B6E', '#88B8A8'],
+  predicted:['#C4654A', '#E85D75', '#7B68C4', '#5A8BC4', '#C49A4A', '#8B6BC4', '#4AA0C4', '#C4784A'],
+  fertile:  ['#7B68C4', '#8B5AC4', '#6B7BC4', '#A068C4', '#5A68D4', '#9B68A4', '#6858B4', '#7B88D4']
+};
+
+const COLOR_DEFAULTS = {
+  period: '#C4654A', spotting: '#F0DDD7', symptoms: '#8BA889',
+  predicted: '#C4654A', fertile: '#7B68C4'
+};
+
+function applyCustomColors() {
+  if (!appData || !appData.settings.custom_colors) return;
+  const colors = appData.settings.custom_colors;
+  const root = document.documentElement;
+
+  if (colors.period) {
+    root.style.setProperty('--accent', colors.period);
+    root.style.setProperty('--accent-hover', colors.period);
+    root.style.setProperty('--accent-bg', colors.period + '14');
+    root.style.setProperty('--accent-bg-strong', colors.period + '26');
+    root.style.setProperty('--accent-glow', colors.period + '59');
+    root.style.setProperty('--flow-heavy', colors.period);
+    root.style.setProperty('--flow-medium', colors.period + 'CC');
+    root.style.setProperty('--flow-light', colors.period + '66');
+    root.style.setProperty('--predicted', colors.period + '2E');
+  }
+  if (colors.spotting) {
+    root.style.setProperty('--flow-spotting', colors.spotting);
+  }
+  if (colors.symptoms) {
+    root.style.setProperty('--symptom', colors.symptoms);
+    root.style.setProperty('--symptom-bg', colors.symptoms + '1F');
+    root.style.setProperty('--symptom-bg-strong', colors.symptoms + '38');
+  }
+  if (colors.predicted && colors.predicted !== colors.period) {
+    root.style.setProperty('--predicted', colors.predicted + '2E');
+  }
+  if (colors.fertile) {
+    root.style.setProperty('--fertile', colors.fertile);
+    root.style.setProperty('--fertile-bg', colors.fertile + '1F');
+    root.style.setProperty('--fertile-bg-strong', colors.fertile + '38');
+    root.style.setProperty('--fertile-glow', colors.fertile + '66');
+  }
+}
+
+function renderColorCustomizer() {
+  if (!appData) return;
+  const colors = appData.settings.custom_colors || { ...COLOR_DEFAULTS };
+  appData.settings.custom_colors = colors;
+
+  Object.keys(COLOR_PALETTES).forEach(key => {
+    const swatch = document.getElementById('swatch-' + key);
+    const palette = document.getElementById('palette-' + key);
+    if (!swatch || !palette) return;
+
+    const current = colors[key] || COLOR_DEFAULTS[key];
+    swatch.style.background = current;
+
+    palette.innerHTML = COLOR_PALETTES[key].map(c =>
+      `<div class="color-dot${c === current ? ' active' : ''}" data-color="${c}" style="background:${c}"></div>`
+    ).join('');
+  });
+}
+
+document.getElementById('color-customizer').addEventListener('click', async (e) => {
+  // Handle dot selection
+  const dot = e.target.closest('.color-dot');
+  if (dot) {
+    const row = dot.closest('.color-row');
+    const key = row.dataset.colorKey;
+    const color = dot.dataset.color;
+    haptic();
+
+    appData.settings.custom_colors[key] = color;
+    await saveData();
+
+    // Update UI
+    row.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === color));
+    document.getElementById('swatch-' + key).style.background = color;
+    applyCustomColors();
+    renderCalendar();
+    return;
+  }
+
+  // Handle row tap to toggle palette
+  const row = e.target.closest('.color-row');
+  if (row) {
+    haptic('light');
+    const palette = row.querySelector('.color-palette');
+    const wasHidden = palette.classList.contains('hidden');
+
+    // Close all palettes
+    document.querySelectorAll('.color-palette').forEach(p => p.classList.add('hidden'));
+
+    // Toggle this one
+    if (wasHidden) palette.classList.remove('hidden');
+  }
+});
+
+// ============================================
 // Flo Import
 // ============================================
 
@@ -2580,16 +2745,17 @@ function matchPandaAnswer(query) {
   if (isFollowUp && pandaContext.lastCategory) {
     const categoryNames = {
       'cycle-basics': 'your cycle', 'symptoms': 'symptoms', 'discharge': 'discharge',
-      'fertility': 'fertility', 'pregnancy': 'pregnancy', 'birth-control': 'birth control',
-      'doctor': 'seeing a doctor', 'lifestyle': 'lifestyle', 'privacy': 'your data',
-      'conditions': 'health conditions'
+      'fertility': 'fertility', 'pregnancy': 'pregnancy', 'postpartum': 'postpartum recovery',
+      'birth-control': 'birth control', 'sexual-health': 'sexual health',
+      'perimenopause': 'perimenopause', 'doctor': 'seeing a doctor',
+      'lifestyle': 'lifestyle', 'privacy': 'your data', 'conditions': 'health conditions'
     };
     const topic = categoryNames[pandaContext.lastCategory] || 'that topic';
     return "i want to help but i'm not sure what you're asking about " + topic + ". can you rephrase? like \"what are the symptoms of...\" or \"is it normal to...\" — that helps me find the right answer for you.";
   }
 
   pandaContext.turnCount++;
-  return "hmm, i'm not sure about that one. try asking about periods, cramps, discharge, fertility, birth control, or when to see a doctor — i've got you on those topics.";
+  return "hmm, i'm not sure about that one. try asking about periods, pregnancy, postpartum, fertility, discharge, birth control, sexual health, symptoms, or when to see a doctor — i know a lot about those.";
 }
 
 function openPandaChat() {
