@@ -707,6 +707,9 @@ function enterApp() {
   renderCalendar();
   checkAlerts();
   resetAutoLock();
+
+  // Show panda hint bubble after a short delay
+  setTimeout(showPandaHint, 3000);
 }
 
 // ============================================
@@ -2909,10 +2912,152 @@ function openPandaChat() {
     const diff = e.changedTouches[0].clientY - startY;
     if (diff > 60) closePanda();
   });
+
+  // Auto-send pending question from hint bubble
+  if (pandaPendingQuestion) {
+    const q = pandaPendingQuestion;
+    pandaPendingQuestion = null;
+    setTimeout(() => sendMessage(q), 600);
+  }
 }
 
+// ============================================
+// Panda Hint Bubble
+// ============================================
+
+let pandaPendingQuestion = null;
+let pandaHintDismissCount = 0;
+
+const PANDA_HINTS = {
+  period: [
+    'Why are my cramps so bad rn?',
+    'Can I swim on my period?',
+    'Is it normal to get clots?',
+    'Why do I poop more on my period?',
+    'Period headaches — why?'
+  ],
+  luteal: [
+    'Why am I so bloated?',
+    'Cravings are wild — is that normal?',
+    'Why are my mood swings so intense?',
+    'Can\'t sleep before my period',
+    'Breakout on my chin again'
+  ],
+  fertile: [
+    'When am I most fertile?',
+    'What does egg white discharge mean?',
+    'Can I get pregnant right now?',
+    'What is ovulation exactly?',
+    'Ovulation pain — is that normal?'
+  ],
+  late: [
+    'Why is my period late?',
+    'Should I take a pregnancy test?',
+    'Can stress delay my period?',
+    'What are early pregnancy symptoms?',
+    'Late period but negative test?'
+  ],
+  pregnancy: [
+    'What size is my baby this week?',
+    'Is this cramping normal?',
+    'What foods should I avoid?',
+    'Morning sickness help',
+    'Can I exercise during pregnancy?'
+  ],
+  postpartum: [
+    'When does my period come back?',
+    'Is postpartum anxiety a thing?',
+    'Why is my hair falling out?',
+    'When can I have sex after birth?',
+    'What is diastasis recti?'
+  ],
+  default: [
+    'Ask me anything about your cycle',
+    'Is my discharge normal?',
+    'When should I see a doctor?',
+    'What\'s a normal cycle length?',
+    'How does birth control affect me?'
+  ]
+};
+
+function getCyclePhaseForHint() {
+  if (!appData) return 'default';
+  if (appMode === 'pregnancy') return 'pregnancy';
+
+  // Check for postpartum (recently switched from pregnancy)
+  const pred = predict(appData.cycles);
+  const fw = showFertility ? fertilityWindow(appData.cycles) : null;
+  const today = fmtDate(new Date());
+
+  // Check if currently on period
+  const activeCycle = appData.cycles.find(c => !c.end_date);
+  if (activeCycle) {
+    const daysSinceStart = daysBetweenDates(activeCycle.start_date, today);
+    if (daysSinceStart <= 7) return 'period';
+  }
+
+  // Check if period is late
+  if (pred && pred.next_period_start) {
+    const daysUntilPeriod = daysBetweenDates(today, pred.next_period_start);
+    if (daysUntilPeriod < -3) return 'late';
+  }
+
+  // Check fertile window
+  if (fw && fw.fertile_start && fw.fertile_end) {
+    if (today >= fw.fertile_start && today <= fw.fertile_end) return 'fertile';
+  }
+
+  // Check if in luteal phase (after ovulation, before predicted period)
+  if (pred && pred.next_period_start) {
+    const daysUntilPeriod = daysBetweenDates(today, pred.next_period_start);
+    if (daysUntilPeriod >= 0 && daysUntilPeriod <= 14) return 'luteal';
+  }
+
+  return 'default';
+}
+
+function showPandaHint() {
+  // Don't show if user has dismissed enough times or if panda chat is open
+  if (pandaHintDismissCount >= 3 || pandaChatOpen) return;
+
+  const hintEl = document.getElementById('panda-hint');
+  const hintText = document.getElementById('panda-hint-text');
+  if (!hintEl || !hintText) return;
+
+  const phase = getCyclePhaseForHint();
+  const hints = PANDA_HINTS[phase] || PANDA_HINTS.default;
+  const hint = hints[Math.floor(Math.random() * hints.length)];
+
+  hintText.textContent = '🐼 ' + hint;
+  hintEl.dataset.question = hint;
+  hintEl.classList.remove('hidden');
+
+  // Auto-hide after 8 seconds
+  setTimeout(() => {
+    if (!hintEl.classList.contains('hidden')) {
+      hintEl.classList.add('hidden');
+    }
+  }, 8000);
+}
+
+// Hint bubble click → open panda with pre-filled question
+document.getElementById('panda-hint').addEventListener('click', () => {
+  const hintEl = document.getElementById('panda-hint');
+  const question = hintEl.dataset.question;
+  hintEl.classList.add('hidden');
+  pandaHintDismissCount++;
+
+  if (question) {
+    pandaPendingQuestion = question;
+    openPandaChat();
+  }
+});
+
 // FAB click
-document.getElementById('btn-panda').addEventListener('click', openPandaChat);
+document.getElementById('btn-panda').addEventListener('click', () => {
+  document.getElementById('panda-hint').classList.add('hidden');
+  openPandaChat();
+});
 
 // ============================================
 // Boot
