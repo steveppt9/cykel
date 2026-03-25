@@ -1131,6 +1131,68 @@ input, textarea {
 .dot-fertile { background: var(--fertile); }
 
 /* ============================================
+   Panda Smart Chips
+   ============================================ */
+
+.panda-chips {
+  display: flex;
+  gap: var(--s-sm);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: var(--s-lg) 0 var(--s-sm);
+  margin: 0 calc(-1 * var(--s-xl));
+  padding-left: var(--s-xl);
+  padding-right: var(--s-xl);
+}
+
+.panda-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.panda-chips.hidden {
+  display: none;
+}
+
+.panda-smart-chip {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: var(--r-full);
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--duration-fast) var(--ease);
+  animation: chipFade var(--duration) var(--ease) both;
+}
+
+.panda-smart-chip:nth-child(1) { animation-delay: 0ms; }
+.panda-smart-chip:nth-child(2) { animation-delay: 50ms; }
+.panda-smart-chip:nth-child(3) { animation-delay: 100ms; }
+.panda-smart-chip:nth-child(4) { animation-delay: 150ms; }
+.panda-smart-chip:nth-child(5) { animation-delay: 200ms; }
+.panda-smart-chip:nth-child(6) { animation-delay: 250ms; }
+.panda-smart-chip:nth-child(7) { animation-delay: 300ms; }
+.panda-smart-chip:nth-child(8) { animation-delay: 350ms; }
+
+@keyframes chipFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panda-smart-chip:active {
+  transform: scale(0.94);
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ============================================
    Alert Banner
    ============================================ */
 
