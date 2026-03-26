@@ -2312,25 +2312,25 @@ function renderColorCustomizer() {
     swatch.style.background = current;
 
     palette.innerHTML = COLOR_PALETTES[key].map(c =>
-      `<div class="color-dot${c === current ? ' active' : ''}" data-color="${c}" style="background:${c}"></div>`
+      `<div class="color-pick${c === current ? ' active' : ''}" data-color="${c}" style="background:${c}"></div>`
     ).join('');
   });
 }
 
 document.getElementById('color-customizer').addEventListener('click', async (e) => {
-  // Handle dot selection
-  const dot = e.target.closest('.color-dot');
-  if (dot) {
-    const row = dot.closest('.color-row');
-    const key = row.dataset.colorKey;
-    const color = dot.dataset.color;
+  // Handle color pick selection
+  const pick = e.target.closest('.color-pick');
+  if (pick) {
+    const item = pick.closest('.color-item');
+    const key = item.dataset.colorKey;
+    const color = pick.dataset.color;
     haptic();
 
     appData.settings.custom_colors[key] = color;
     await saveData();
 
     // Update UI
-    row.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === color));
+    item.querySelectorAll('.color-pick').forEach(d => d.classList.toggle('active', d.dataset.color === color));
     document.getElementById('swatch-' + key).style.background = color;
     applyCustomColors();
     renderCalendar();
@@ -2341,14 +2341,21 @@ document.getElementById('color-customizer').addEventListener('click', async (e) 
   const row = e.target.closest('.color-row');
   if (row) {
     haptic('light');
-    const palette = row.querySelector('.color-palette');
-    const wasHidden = palette.classList.contains('hidden');
+    const item = row.closest('.color-item');
+    const palette = item.querySelector('.color-palette');
+    const wasOpen = !palette.classList.contains('hidden');
 
-    // Close all palettes
-    document.querySelectorAll('.color-palette').forEach(p => p.classList.add('hidden'));
+    // Close all palettes and remove open state
+    document.querySelectorAll('.color-item').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.color-palette').classList.add('hidden');
+    });
 
     // Toggle this one
-    if (wasHidden) palette.classList.remove('hidden');
+    if (!wasOpen) {
+      palette.classList.remove('hidden');
+      item.classList.add('open');
+    }
   }
 });
 
