@@ -2488,100 +2488,91 @@ input, textarea {
 
 .pregnancy-card {
   margin-top: var(--s-xl);
-  padding: var(--s-xl);
+  padding: 28px var(--s-xl) var(--s-xl);
   background: var(--surface-glass);
   backdrop-filter: blur(20px) saturate(1.6);
   -webkit-backdrop-filter: blur(20px) saturate(1.6);
   border-radius: var(--r-xl);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--s-xl);
+  text-align: center;
+  gap: 0;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
   border: 1px solid var(--border);
   position: relative;
   z-index: 1;
 }
 
-.preg-hero {
+.preg-fruit-wrap {
+  width: 88px;
+  height: 88px;
   display: flex;
   align-items: center;
-  gap: var(--s-lg);
+  justify-content: center;
+  background: var(--accent-bg);
+  border-radius: var(--r-full);
+  margin-bottom: 16px;
 }
 
 .preg-fruit {
-  font-size: 56px;
+  font-size: 48px;
   line-height: 1;
   animation: fruitBob 3s ease-in-out infinite;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.08));
 }
 
 @keyframes fruitBob {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-3px) rotate(2deg); }
+  25% { transform: translateY(-2px) rotate(2deg); }
   75% { transform: translateY(2px) rotate(-1deg); }
 }
 
-.preg-hero-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.preg-week-line {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-tertiary);
+.preg-week-badge {
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 1.2px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  padding: 4px 14px;
+  border-radius: var(--r-full);
+  margin-bottom: 10px;
 }
 
 .preg-week-num {
-  font-size: 13px;
   font-weight: 800;
-  color: var(--accent);
 }
 
 .preg-status {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text);
   line-height: 1.2;
-}
-
-.preg-size-row {
-  margin-top: var(--s-md);
-  padding: 8px 14px;
-  background: var(--accent-bg);
-  border-radius: var(--r-full);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-sm);
+  margin-bottom: 4px;
 }
 
 .preg-size-label {
   font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  margin-bottom: 14px;
 }
 
 .preg-fact {
-  margin-top: var(--s-md);
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: var(--text-secondary);
+  max-width: 320px;
+  margin-bottom: 20px;
 }
 
-.preg-footer {
-  margin-top: var(--s-lg);
+.preg-progress-wrap {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--s-sm);
-}
-
-.preg-due {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  font-weight: 500;
+  gap: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .preg-progress-track {
@@ -2597,6 +2588,13 @@ input, textarea {
   background: linear-gradient(90deg, var(--accent-bg-strong), var(--accent));
   border-radius: var(--r-full);
   transition: width var(--duration-slow) var(--ease);
+}
+
+.preg-due {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-align: center;
 }
 
 /* ============================================
