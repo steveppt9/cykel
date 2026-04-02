@@ -683,6 +683,114 @@ input, textarea {
   transform: scale(0.94);
 }
 
+/* Clear Day Button */
+.daylog-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: var(--s-sm);
+}
+
+.clear-day-btn {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-subtle);
+  background: none;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.clear-day-btn:active {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+  transform: scale(0.95);
+}
+
+/* ============================================
+   Cramp Pain Scale
+   ============================================ */
+
+.cramp-scale {
+  width: 100%;
+  padding: 12px 0 4px;
+  animation: slideDown var(--duration-fast) var(--ease) both;
+}
+
+.cramp-scale.hidden {
+  display: none;
+}
+
+.cramp-scale-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-tertiary);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.cramp-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+}
+
+.cramp-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: linear-gradient(90deg, var(--symptom-bg-strong), var(--danger));
+  outline: none;
+}
+
+.cramp-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-full);
+  background: white;
+  border: 2.5px solid var(--accent);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-bounce);
+}
+
+.cramp-slider::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+}
+
+.cramp-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-full);
+  background: white;
+  border: 2.5px solid var(--accent);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  cursor: pointer;
+}
+
+.cramp-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 28px;
+  text-align: center;
+}
+
+.cramp-scale-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
 /* ============================================
    Day Log Body
    ============================================ */
@@ -3172,8 +3280,11 @@ input, textarea {
   align-items: center;
   justify-content: center;
   z-index: 100;
-  transition: all var(--duration) var(--ease);
+  transition: box-shadow var(--duration) var(--ease);
   animation: pandaBob 3s ease-in-out infinite;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   padding: 8px;
 }
 
