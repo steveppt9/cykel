@@ -108,9 +108,18 @@ export function predict(cycles) {
 
   const avgCycle = mean(cycleLengths);
   const avgPeriod = periodLengths.length ? mean(periodLengths) : 5;
-  const lastStart = completed[completed.length - 1].start_date;
 
-  const predictedStart = addDays(lastStart, Math.round(avgCycle));
+  // Use most recent start date — active (uncompleted) cycle if one exists, else last completed
+  const activeCycle = cycles.find(c => c.end_date == null);
+  const lastStart = activeCycle ? activeCycle.start_date : completed[completed.length - 1].start_date;
+
+  let predictedStart = addDays(lastStart, Math.round(avgCycle));
+
+  // If prediction is in the past, leap forward by cycle lengths until it's in the future
+  const todayStr = new Date().toISOString().slice(0, 10);
+  while (predictedStart < todayStr) {
+    predictedStart = addDays(predictedStart, Math.round(avgCycle));
+  }
   const predictedEnd = addDays(predictedStart, Math.max(0, Math.round(avgPeriod) - 1));
 
   const sd = stdDev(cycleLengths);

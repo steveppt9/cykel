@@ -119,6 +119,7 @@ let selectedSexDrive = null;
 let selectedEnergy = null;
 let selectedSleep = null;
 let selectedExercise = null;
+let selectedCrampLevel = 0;
 
 // Weekly pregnancy milestones — fruit size comparison + development facts
 const PREGNANCY_WEEKS = {
@@ -1374,9 +1375,14 @@ function openDayLog(dateStr, existingLog, existingSymptoms) {
   selectedExercise = existingLog?.exercise || null;
   daylogNotes.value = existingLog ? (existingLog.notes || '') : '';
 
+  // Load cramp severity
+  const crampEntry = existingSymptoms ? existingSymptoms.find(s => s.symptom_type === 'Cramps') : null;
+  selectedCrampLevel = crampEntry ? (crampEntry.severity || 5) : 5;
+
   updateFlowButtons();
   updateMoodChips();
   updateSymptomChips();
+  updateCrampScale();
 
   updateSelectRow('discharge-buttons', selectedDischarge);
   updateSelectRow('discharge-color-buttons', selectedDischargeColor);
@@ -1443,6 +1449,24 @@ document.getElementById('mood-chips').addEventListener('click', e => {
   updateMoodChips();
 });
 
+function updateCrampScale() {
+  const scaleEl = document.getElementById('cramp-scale');
+  const slider = document.getElementById('cramp-slider');
+  const valueEl = document.getElementById('cramp-value');
+  if (selectedSymptoms.has('Cramps')) {
+    scaleEl.classList.remove('hidden');
+    slider.value = selectedCrampLevel || 5;
+    valueEl.textContent = slider.value;
+  } else {
+    scaleEl.classList.add('hidden');
+  }
+}
+
+document.getElementById('cramp-slider').addEventListener('input', (e) => {
+  selectedCrampLevel = parseInt(e.target.value);
+  document.getElementById('cramp-value').textContent = selectedCrampLevel;
+});
+
 document.getElementById('symptom-chips').addEventListener('click', e => {
   const chip = e.target.closest('.chip');
   if (!chip) return;
@@ -1451,6 +1475,7 @@ document.getElementById('symptom-chips').addEventListener('click', e => {
   if (selectedSymptoms.has(sym)) selectedSymptoms.delete(sym);
   else selectedSymptoms.add(sym);
   updateSymptomChips();
+  updateCrampScale();
 });
 
 // Discharge (single-select)
@@ -1539,7 +1564,8 @@ document.getElementById('btn-save-day').addEventListener('click', async () => {
 
   appData.symptoms = appData.symptoms.filter(s => s.date !== selectedDate);
   for (const sym of selectedSymptoms) {
-    appData.symptoms.push({ date: selectedDate, symptom_type: sym, severity: 2 });
+    const severity = sym === 'Cramps' ? selectedCrampLevel : 2;
+    appData.symptoms.push({ date: selectedDate, symptom_type: sym, severity });
   }
 
   appData.cycles = rebuildCycles(appData.day_logs);
@@ -1549,6 +1575,47 @@ document.getElementById('btn-save-day').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-back').addEventListener('click', () => showScreen('calendar'));
+
+// Clear day
+document.getElementById('btn-clear-day').addEventListener('click', async () => {
+  if (!selectedDate || !appData) return;
+  haptic('light');
+
+  // Remove day log
+  appData.day_logs = appData.day_logs.filter(l => l.date !== selectedDate);
+  // Remove symptoms
+  appData.symptoms = appData.symptoms.filter(s => s.date !== selectedDate);
+  // Rebuild cycles
+  appData.cycles = rebuildCycles(appData.day_logs);
+  await saveData();
+
+  // Reset UI to blank state
+  selectedFlow = 'None';
+  selectedSymptoms = new Set();
+  selectedMoods = new Set();
+  selectedDischarge = null;
+  selectedDischargeColor = null;
+  selectedSex = null;
+  selectedSexDrive = null;
+  selectedEnergy = null;
+  selectedSleep = null;
+  selectedExercise = null;
+  selectedCrampLevel = 0;
+  daylogNotes.value = '';
+
+  updateFlowButtons();
+  updateMoodChips();
+  updateSymptomChips();
+  updateCrampScale();
+  updateSelectRow('discharge-buttons', null);
+  updateSelectRow('discharge-color-buttons', null);
+  updateSelectRow('sex-buttons', null);
+  updateSexDriveVisibility();
+  updatePillRow('drive-buttons', null);
+  updatePillRow('energy-buttons', null);
+  updatePillRow('sleep-buttons', null);
+  updatePillRow('exercise-buttons', null);
+});
 
 // ============================================
 // Stats
@@ -3133,11 +3200,88 @@ document.getElementById('panda-hint').addEventListener('click', () => {
   }
 });
 
-// FAB click
-document.getElementById('btn-panda').addEventListener('click', () => {
-  document.getElementById('panda-hint').classList.add('hidden');
-  openPandaChat();
-});
+// FAB click + drag
+(() => {
+  const fab = document.getElementById('btn-panda');
+  const hint = document.getElementById('panda-hint');
+  let isDragging = false;
+  let startX, startY, startLeft, startTop;
+  let moved = false;
+
+  function getFabPos() {
+    const rect = fab.getBoundingClientRect();
+    return { left: rect.left, top: rect.top };
+  }
+
+  fab.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    const pos = getFabPos();
+    startX = touch.clientX;
+    startY = touch.clientY;
+    startLeft = pos.left;
+    startTop = pos.top;
+    moved = false;
+    isDragging = false;
+  }, { passive: true });
+
+  fab.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+
+    if (!isDragging && Math.abs(dx) + Math.abs(dy) > 10) {
+      isDragging = true;
+      fab.style.animation = 'none';
+      fab.style.transition = 'none';
+    }
+
+    if (isDragging) {
+      moved = true;
+      e.preventDefault();
+      const newLeft = Math.max(8, Math.min(window.innerWidth - 68, startLeft + dx));
+      const newTop = Math.max(8, Math.min(window.innerHeight - 68, startTop + dy));
+      fab.style.left = newLeft + 'px';
+      fab.style.top = newTop + 'px';
+      fab.style.right = 'auto';
+      fab.style.bottom = 'auto';
+      hint.classList.add('hidden');
+    }
+  }, { passive: false });
+
+  fab.addEventListener('touchend', () => {
+    if (isDragging) {
+      // Snap to nearest edge
+      const rect = fab.getBoundingClientRect();
+      const centerX = rect.left + 30;
+      const snapRight = centerX > window.innerWidth / 2;
+
+      fab.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      fab.style.left = snapRight ? 'auto' : '16px';
+      fab.style.right = snapRight ? '16px' : 'auto';
+      fab.style.bottom = Math.max(16, window.innerHeight - rect.bottom + rect.height / 2 - 30) + 'px';
+      fab.style.top = 'auto';
+
+      setTimeout(() => {
+        fab.style.animation = '';
+      }, 400);
+
+      isDragging = false;
+      return;
+    }
+
+    if (!moved) {
+      hint.classList.add('hidden');
+      openPandaChat();
+    }
+  });
+
+  // Desktop fallback
+  fab.addEventListener('click', (e) => {
+    if (moved) { moved = false; return; }
+    hint.classList.add('hidden');
+    openPandaChat();
+  });
+})();
 
 // ============================================
 // Boot
