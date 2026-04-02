@@ -381,6 +381,9 @@
           <h2 id="daylog-title" class="sheet-title"></h2>
           <button id="btn-save-day" class="save-btn">Save</button>
         </div>
+        <div class="daylog-actions">
+          <button id="btn-clear-day" class="clear-day-btn">Clear Day</button>
+        </div>
         <div class="daylog-body">
           <div class="log-section">
             <h3 class="section-label">Flow</h3>
@@ -412,6 +415,17 @@
                 <span class="chip-cat-label">Pain</span>
                 <div class="chip-cat-row">
                   <button data-symptom="Cramps" class="chip">Cramps</button>
+                  <div id="cramp-scale" class="cramp-scale hidden">
+                    <span class="cramp-scale-label">Pain level</span>
+                    <div class="cramp-slider-wrap">
+                      <input type="range" id="cramp-slider" class="cramp-slider" min="1" max="10" value="5" />
+                      <span id="cramp-value" class="cramp-value">5</span>
+                    </div>
+                    <div class="cramp-scale-ends">
+                      <span>barely there</span>
+                      <span>send help</span>
+                    </div>
+                  </div>
                   <button data-symptom="Headache" class="chip">Headache</button>
                   <button data-symptom="Backache" class="chip">Backache</button>
                   <button data-symptom="BreastPain" class="chip">Breast Pain</button>
