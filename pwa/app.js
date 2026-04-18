@@ -3200,87 +3200,92 @@ document.getElementById('panda-hint').addEventListener('click', () => {
   }
 });
 
-// FAB click + drag
+// FAB drag + tap (pointer events, buttery smooth)
 (() => {
   const fab = document.getElementById('btn-panda');
   const hint = document.getElementById('panda-hint');
+  const DRAG_THRESHOLD = 4;
+
+  let pointerId = null;
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
   let isDragging = false;
-  let startX, startY, startLeft, startTop;
   let moved = false;
 
-  function getFabPos() {
+  fab.addEventListener('pointerdown', (e) => {
+    if (pointerId !== null) return;
+    pointerId = e.pointerId;
+
+    // Freeze the bob animation immediately so its transform doesn't fight our positioning
+    fab.classList.add('panda-dragging');
+
     const rect = fab.getBoundingClientRect();
-    return { left: rect.left, top: rect.top };
-  }
-
-  fab.addEventListener('touchstart', (e) => {
-    const touch = e.touches[0];
-    const pos = getFabPos();
-    startX = touch.clientX;
-    startY = touch.clientY;
-    startLeft = pos.left;
-    startTop = pos.top;
-    moved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
     isDragging = false;
-  }, { passive: true });
+    moved = false;
 
-  fab.addEventListener('touchmove', (e) => {
-    const touch = e.touches[0];
-    const dx = touch.clientX - startX;
-    const dy = touch.clientY - startY;
+    fab.setPointerCapture(pointerId);
+  });
 
-    if (!isDragging && Math.abs(dx) + Math.abs(dy) > 10) {
+  fab.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== pointerId) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    if (!isDragging && Math.hypot(dx, dy) > DRAG_THRESHOLD) {
       isDragging = true;
-      fab.style.animation = 'none';
-      fab.style.transition = 'none';
+      hint.classList.add('hidden');
     }
 
     if (isDragging) {
       moved = true;
-      e.preventDefault();
       const newLeft = Math.max(8, Math.min(window.innerWidth - 68, startLeft + dx));
       const newTop = Math.max(8, Math.min(window.innerHeight - 68, startTop + dy));
       fab.style.left = newLeft + 'px';
       fab.style.top = newTop + 'px';
       fab.style.right = 'auto';
       fab.style.bottom = 'auto';
-      hint.classList.add('hidden');
     }
-  }, { passive: false });
+  });
 
-  fab.addEventListener('touchend', () => {
+  function endDrag(e) {
+    if (e.pointerId !== pointerId) return;
+    try { fab.releasePointerCapture(pointerId); } catch (_) {}
+    pointerId = null;
+
     if (isDragging) {
-      // Snap to nearest edge
+      // Snap to nearest horizontal edge with spring
       const rect = fab.getBoundingClientRect();
-      const centerX = rect.left + 30;
+      const centerX = rect.left + rect.width / 2;
       const snapRight = centerX > window.innerWidth / 2;
+      const bottomPx = Math.max(16, window.innerHeight - rect.bottom);
 
-      fab.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      fab.classList.add('panda-snapping');
       fab.style.left = snapRight ? 'auto' : '16px';
       fab.style.right = snapRight ? '16px' : 'auto';
-      fab.style.bottom = Math.max(16, window.innerHeight - rect.bottom + rect.height / 2 - 30) + 'px';
       fab.style.top = 'auto';
+      fab.style.bottom = bottomPx + 'px';
 
       setTimeout(() => {
-        fab.style.animation = '';
-      }, 400);
+        fab.classList.remove('panda-dragging', 'panda-snapping');
+      }, 350);
 
       isDragging = false;
       return;
     }
 
+    // Tap — open chat
+    fab.classList.remove('panda-dragging');
     if (!moved) {
       hint.classList.add('hidden');
       openPandaChat();
     }
-  });
+  }
 
-  // Desktop fallback
-  fab.addEventListener('click', (e) => {
-    if (moved) { moved = false; return; }
-    hint.classList.add('hidden');
-    openPandaChat();
-  });
+  fab.addEventListener('pointerup', endDrag);
+  fab.addEventListener('pointercancel', endDrag);
 })();
 
 // ============================================
