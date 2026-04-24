@@ -2365,6 +2365,17 @@ function applyCustomColors() {
   }
 }
 
+// Calculate perceived luminance (0-1) for a hex color. Used to pick check mark color.
+function colorLuminance(hex) {
+  const h = hex.replace('#', '');
+  if (h.length !== 6) return 0.5;
+  const r = parseInt(h.substr(0, 2), 16) / 255;
+  const g = parseInt(h.substr(2, 2), 16) / 255;
+  const b = parseInt(h.substr(4, 2), 16) / 255;
+  // Rec. 709 luma
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 function renderColorCustomizer() {
   if (!appData) return;
   const colors = appData.settings.custom_colors || { ...COLOR_DEFAULTS };
@@ -2378,9 +2389,11 @@ function renderColorCustomizer() {
     const current = colors[key] || COLOR_DEFAULTS[key];
     swatch.style.background = current;
 
-    palette.innerHTML = COLOR_PALETTES[key].map(c =>
-      `<div class="color-pick${c === current ? ' active' : ''}" data-color="${c}" style="background:${c}"></div>`
-    ).join('');
+    palette.innerHTML = COLOR_PALETTES[key].map(c => {
+      const isActive = c === current;
+      const darkCheck = colorLuminance(c) > 0.6;
+      return `<div class="color-pick${isActive ? ' active' : ''}${darkCheck ? ' color-pick-dark-check' : ''}" data-color="${c}" style="background:${c}"></div>`;
+    }).join('');
   });
 }
 
@@ -3200,53 +3213,76 @@ document.getElementById('panda-hint').addEventListener('click', () => {
   }
 });
 
-// FAB drag + tap (pointer events, buttery smooth)
+// FAB drag + tap (offset-based positioning, rAF-smoothed)
 (() => {
   const fab = document.getElementById('btn-panda');
   const hint = document.getElementById('panda-hint');
   const DRAG_THRESHOLD = 4;
+  const FAB_SIZE = 60;
 
   let pointerId = null;
-  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+  let pointerStartX = 0, pointerStartY = 0;
+  let offsetX = 0, offsetY = 0;
   let isDragging = false;
   let moved = false;
+  let pendingX = 0, pendingY = 0;
+  let rafScheduled = false;
+
+  function writePosition() {
+    rafScheduled = false;
+    const clampedX = Math.max(8, Math.min(window.innerWidth - FAB_SIZE - 8, pendingX));
+    const clampedY = Math.max(8, Math.min(window.innerHeight - FAB_SIZE - 8, pendingY));
+    fab.style.left = clampedX + 'px';
+    fab.style.top = clampedY + 'px';
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+  }
 
   fab.addEventListener('pointerdown', (e) => {
     if (pointerId !== null) return;
     pointerId = e.pointerId;
 
-    // Freeze the bob animation immediately so its transform doesn't fight our positioning
+    // Freeze animation BEFORE reading position so we capture the static rect
     fab.classList.add('panda-dragging');
+    fab.style.animation = 'none';
 
     const rect = fab.getBoundingClientRect();
-    startX = e.clientX;
-    startY = e.clientY;
-    startLeft = rect.left;
-    startTop = rect.top;
+    // Pin position so the moment after animation stops, element stays put
+    fab.style.left = rect.left + 'px';
+    fab.style.top = rect.top + 'px';
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+
+    pointerStartX = e.clientX;
+    pointerStartY = e.clientY;
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
     isDragging = false;
     moved = false;
 
-    fab.setPointerCapture(pointerId);
+    try { fab.setPointerCapture(pointerId); } catch (_) {}
   });
 
   fab.addEventListener('pointermove', (e) => {
     if (e.pointerId !== pointerId) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
 
-    if (!isDragging && Math.hypot(dx, dy) > DRAG_THRESHOLD) {
-      isDragging = true;
-      hint.classList.add('hidden');
+    if (!isDragging) {
+      const dx = e.clientX - pointerStartX;
+      const dy = e.clientY - pointerStartY;
+      if (Math.hypot(dx, dy) > DRAG_THRESHOLD) {
+        isDragging = true;
+        hint.classList.add('hidden');
+      } else {
+        return;
+      }
     }
 
-    if (isDragging) {
-      moved = true;
-      const newLeft = Math.max(8, Math.min(window.innerWidth - 68, startLeft + dx));
-      const newTop = Math.max(8, Math.min(window.innerHeight - 68, startTop + dy));
-      fab.style.left = newLeft + 'px';
-      fab.style.top = newTop + 'px';
-      fab.style.right = 'auto';
-      fab.style.bottom = 'auto';
+    moved = true;
+    pendingX = e.clientX - offsetX;
+    pendingY = e.clientY - offsetY;
+    if (!rafScheduled) {
+      rafScheduled = true;
+      requestAnimationFrame(writePosition);
     }
   });
 
@@ -3256,7 +3292,9 @@ document.getElementById('panda-hint').addEventListener('click', () => {
     pointerId = null;
 
     if (isDragging) {
-      // Snap to nearest horizontal edge with spring
+      // Flush any pending position write so snap calc is correct
+      if (rafScheduled) writePosition();
+
       const rect = fab.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const snapRight = centerX > window.innerWidth / 2;
@@ -3270,14 +3308,22 @@ document.getElementById('panda-hint').addEventListener('click', () => {
 
       setTimeout(() => {
         fab.classList.remove('panda-dragging', 'panda-snapping');
-      }, 350);
+        fab.style.animation = '';
+      }, 380);
 
       isDragging = false;
       return;
     }
 
-    // Tap — open chat
+    // Tap — restore animation and open chat
     fab.classList.remove('panda-dragging');
+    fab.style.animation = '';
+    // Restore original right/bottom anchoring since we didn't move
+    fab.style.left = '';
+    fab.style.top = '';
+    fab.style.right = '';
+    fab.style.bottom = '';
+
     if (!moved) {
       hint.classList.add('hidden');
       openPandaChat();
