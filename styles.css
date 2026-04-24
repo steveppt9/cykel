@@ -2570,11 +2570,13 @@ input, textarea {
   width: 40px;
   height: 40px;
   border-radius: var(--r-full);
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  border: none;
+  background-color: #ccc; /* fallback only — JS always sets an inline color */
+  background-clip: padding-box;
   cursor: pointer;
   transition: transform var(--duration-fast) var(--ease-bounce), box-shadow var(--duration-fast) var(--ease);
   position: relative;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
 .color-pick:active {

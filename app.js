@@ -2387,13 +2387,21 @@ function renderColorCustomizer() {
     if (!swatch || !palette) return;
 
     const current = colors[key] || COLOR_DEFAULTS[key];
-    swatch.style.background = current;
+    swatch.style.backgroundColor = current;
 
-    palette.innerHTML = COLOR_PALETTES[key].map(c => {
-      const isActive = c === current;
-      const darkCheck = colorLuminance(c) > 0.6;
-      return `<div class="color-pick${isActive ? ' active' : ''}${darkCheck ? ' color-pick-dark-check' : ''}" data-color="${c}" style="background:${c}"></div>`;
-    }).join('');
+    // Clear existing picks
+    palette.innerHTML = '';
+
+    // Build each pick as a real DOM node so backgroundColor is set via property, not string
+    COLOR_PALETTES[key].forEach(c => {
+      const pick = document.createElement('div');
+      pick.className = 'color-pick';
+      if (c === current) pick.classList.add('active');
+      if (colorLuminance(c) > 0.6) pick.classList.add('color-pick-dark-check');
+      pick.dataset.color = c;
+      pick.style.backgroundColor = c;
+      palette.appendChild(pick);
+    });
   });
 }
 
