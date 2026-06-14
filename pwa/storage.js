@@ -7,7 +7,7 @@ import {
   generateMasterKey, wrapKey, unwrapKey,
   wrapKeyWithBio, unwrapKeyWithBio,
   encryptData, decryptData, decryptLegacy, zeroize,
-  PASSPHRASE_ITERATIONS, PIN_ITERATIONS
+  PASSPHRASE_ITERATIONS
 } from './crypto.js';
 
 const DB_NAME = 'cykel';
@@ -56,6 +56,19 @@ function dbPut(db, key, value) {
   });
 }
 
+// Put multiple key/value pairs in a SINGLE transaction so a partial failure
+// can't leave a half-written vault (e.g. wrapped key without data).
+function dbPutMany(db, entries) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    for (const [key, value] of entries) store.put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}
+
 function dbDelete(db, key) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -71,16 +84,6 @@ function dbDelete(db, key) {
 export async function dataExists() {
   const db = await openDB();
   const data = await dbGet(db, K_DATA);
-  db.close();
-  return data != null;
-}
-
-/**
- * Check if PIN is configured.
- */
-export async function hasPin() {
-  const db = await openDB();
-  const data = await dbGet(db, K_PIN_WRAPPED);
   db.close();
   return data != null;
 }
@@ -103,9 +106,11 @@ export async function setup(passphrase) {
     const encData = await encryptData(masterKeyBytes, json);
 
     const db = await openDB();
-    await dbPut(db, K_PASS_WRAPPED, wrapped);
-    await dbPut(db, K_DATA, encData);
-    await dbPut(db, K_FORMAT, FORMAT_V2);
+    await dbPutMany(db, [
+      [K_PASS_WRAPPED, wrapped],
+      [K_DATA, encData],
+      [K_FORMAT, FORMAT_V2],
+    ]);
     db.close();
 
     return { masterKeyBytes, data: defaultData };
@@ -149,25 +154,6 @@ export async function unlockWithPassphrase(passphrase) {
 }
 
 /**
- * Unlock with PIN.
- */
-export async function unlockWithPin(pin) {
-  const db = await openDB();
-  const wrapped = await dbGet(db, K_PIN_WRAPPED);
-  const encData = await dbGet(db, K_DATA);
-  db.close();
-
-  if (!wrapped) throw new Error('PIN not set');
-  if (!encData) throw new Error('No data found');
-
-  const masterKeyBytes = await unwrapKey(new Uint8Array(wrapped), pin, PIN_ITERATIONS);
-  const plaintext = await decryptData(masterKeyBytes, new Uint8Array(encData));
-  const data = JSON.parse(new TextDecoder().decode(plaintext));
-
-  return { masterKeyBytes, data };
-}
-
-/**
  * Save app data (encrypted with master key).
  */
 export async function save(masterKeyBytes, appData) {
@@ -179,17 +165,7 @@ export async function save(masterKeyBytes, appData) {
 }
 
 /**
- * Set up a PIN for quick unlock.
- */
-export async function setupPin(masterKeyBytes, pin) {
-  const wrapped = await wrapKey(masterKeyBytes, pin, PIN_ITERATIONS);
-  const db = await openDB();
-  await dbPut(db, K_PIN_WRAPPED, wrapped);
-  db.close();
-}
-
-/**
- * Remove PIN.
+ * Remove PIN (purges any legacy PIN-wrapped key blob).
  */
 export async function removePin() {
   const db = await openDB();
@@ -285,9 +261,11 @@ async function migrateFromV1(passphrase, oldEncrypted) {
   const encData = await encryptData(masterKeyBytes, json);
 
   const db = await openDB();
-  await dbPut(db, K_PASS_WRAPPED, wrapped);
-  await dbPut(db, K_DATA, encData);
-  await dbPut(db, K_FORMAT, FORMAT_V2);
+  await dbPutMany(db, [
+    [K_PASS_WRAPPED, wrapped],
+    [K_DATA, encData],
+    [K_FORMAT, FORMAT_V2],
+  ]);
   db.close();
 
   return { masterKeyBytes, data };

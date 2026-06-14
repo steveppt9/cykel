@@ -113,12 +113,15 @@ export function predict(cycles) {
   const activeCycle = cycles.find(c => c.end_date == null);
   const lastStart = activeCycle ? activeCycle.start_date : completed[completed.length - 1].start_date;
 
-  let predictedStart = addDays(lastStart, Math.round(avgCycle));
+  // Guard against a zero/negative cycle length (corrupt or duplicate starts),
+  // which would make the leap-forward loop below spin forever.
+  const cycleStep = Math.max(1, Math.round(avgCycle));
+  let predictedStart = addDays(lastStart, cycleStep);
 
   // If prediction is in the past, leap forward by cycle lengths until it's in the future
   const todayStr = new Date().toISOString().slice(0, 10);
   while (predictedStart < todayStr) {
-    predictedStart = addDays(predictedStart, Math.round(avgCycle));
+    predictedStart = addDays(predictedStart, cycleStep);
   }
   const predictedEnd = addDays(predictedStart, Math.max(0, Math.round(avgPeriod) - 1));
 

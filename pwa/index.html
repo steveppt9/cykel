@@ -2,15 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#C4654A" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#FAF6F1" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#141110" media="(prefers-color-scheme: dark)" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none';" />
   <meta name="lightning" content="feathersensible605709@getalby.com" />
   <title>Cykel</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
 </head>
 <body>
@@ -107,10 +109,18 @@
         <div class="form-block">
           <div class="input-wrap">
             <input type="password" id="setup-pass" placeholder="Create a passphrase" autocomplete="off" />
+            <button type="button" id="btn-reveal-setup" class="input-reveal" aria-label="Show passphrase" aria-pressed="false">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div id="pass-strength" class="pass-strength hidden">
+            <div class="pass-strength-track"><div id="pass-strength-fill" class="pass-strength-fill"></div></div>
+            <span id="pass-strength-label" class="pass-strength-label"></span>
           </div>
           <div class="input-wrap">
             <input type="password" id="setup-confirm" placeholder="Confirm passphrase" autocomplete="off" />
           </div>
+          <p class="setup-hint">Tip: a few random words you'll remember beats a short complex password.</p>
           <button id="btn-setup" class="btn-primary" disabled>
             <span>Get Started</span>
           </button>
@@ -139,82 +149,6 @@
         <button id="btn-bio-pass" class="bio-btn hidden" aria-label="Unlock with biometrics">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 3h4v4M3 17v4h4M17 21h4v-4"/><circle cx="12" cy="12" r="4"/></svg>
         </button>
-      </div>
-    </div>
-
-    <!-- PIN Setup Screen -->
-    <div id="screen-pin-setup" class="screen hidden">
-      <div class="screen-inner center-v">
-        <div class="brand-block">
-          <div class="brand-mark"></div>
-          <h2 id="pin-setup-title" class="pin-title">Set a PIN</h2>
-          <p id="pin-setup-subtitle" class="pin-subtitle">For quick daily unlock</p>
-        </div>
-        <div class="pin-area">
-          <div id="pin-setup-dots" class="pin-dots">
-            <div class="pin-dot"></div>
-            <div class="pin-dot"></div>
-            <div class="pin-dot"></div>
-            <div class="pin-dot"></div>
-          </div>
-          <p id="pin-setup-error" class="error-text"></p>
-          <div id="pin-setup-pad" class="pin-pad">
-            <button class="pin-key" data-key="1">1</button>
-            <button class="pin-key" data-key="2">2</button>
-            <button class="pin-key" data-key="3">3</button>
-            <button class="pin-key" data-key="4">4</button>
-            <button class="pin-key" data-key="5">5</button>
-            <button class="pin-key" data-key="6">6</button>
-            <button class="pin-key" data-key="7">7</button>
-            <button class="pin-key" data-key="8">8</button>
-            <button class="pin-key" data-key="9">9</button>
-            <div class="pin-key-empty"></div>
-            <button class="pin-key" data-key="0">0</button>
-            <button class="pin-key pin-key-delete" data-key="delete">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
-            </button>
-          </div>
-        </div>
-        <button id="btn-skip-pin" class="btn-text">Skip for now</button>
-      </div>
-    </div>
-
-    <!-- PIN Unlock Screen -->
-    <div id="screen-pin-unlock" class="screen hidden">
-      <div class="screen-inner center-v">
-        <div class="brand-block">
-          <div class="brand-mark"></div>
-          <h1 class="wordmark">cykel</h1>
-        </div>
-        <div class="pin-area">
-          <div id="pin-unlock-dots" class="pin-dots">
-            <div class="pin-dot"></div>
-            <div class="pin-dot"></div>
-            <div class="pin-dot"></div>
-            <div class="pin-dot"></div>
-          </div>
-          <p id="pin-unlock-error" class="error-text"></p>
-          <div id="pin-unlock-pad" class="pin-pad">
-            <button class="pin-key" data-key="1">1</button>
-            <button class="pin-key" data-key="2">2</button>
-            <button class="pin-key" data-key="3">3</button>
-            <button class="pin-key" data-key="4">4</button>
-            <button class="pin-key" data-key="5">5</button>
-            <button class="pin-key" data-key="6">6</button>
-            <button class="pin-key" data-key="7">7</button>
-            <button class="pin-key" data-key="8">8</button>
-            <button class="pin-key" data-key="9">9</button>
-            <div class="pin-key-empty"></div>
-            <button class="pin-key" data-key="0">0</button>
-            <button class="pin-key pin-key-delete" data-key="delete">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
-            </button>
-          </div>
-        </div>
-        <button id="btn-bio-pin" class="bio-btn hidden" aria-label="Unlock with biometrics">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 3h4v4M3 17v4h4M17 21h4v-4"/><circle cx="12" cy="12" r="4"/></svg>
-        </button>
-        <button id="btn-use-passphrase" class="btn-text">Use passphrase instead</button>
       </div>
     </div>
 
@@ -290,8 +224,8 @@
         </div>
 
         <div id="empty-state" class="empty-state hidden">
-          <p class="empty-title">Tap any day to start logging</p>
-          <p class="empty-sub">After 2 cycles, predictions will appear here</p>
+          <p class="empty-title">Tap a day to log how you're feeling</p>
+          <p class="empty-sub">Track 2 cycles and Panda starts predicting your next period</p>
         </div>
 
         <div id="prediction-card" class="prediction-card hidden">
@@ -619,7 +553,7 @@
         </div>
         <div class="settings-body">
           <div class="settings-group">
-            <h3 class="group-label" style="color: var(--text-tertiary);">Mode</h3>
+            <h3 class="group-label group-label-muted">Mode</h3>
             <div class="mode-selector" id="mode-selector">
               <button class="mode-btn active" data-mode="tracking">
                 <span class="mode-icon">&#x1F4C5;</span>
@@ -674,11 +608,6 @@
               <div class="setting-info"><span class="setting-label">Fertility Window</span><span class="setting-desc">Show estimated fertile days on calendar</span></div>
               <label class="toggle"><input type="checkbox" id="toggle-fertility" /><span class="toggle-track"></span></label>
             </div>
-            <div class="settings-divider"></div>
-            <div class="settings-row">
-              <div class="setting-info"><span class="setting-label">Quick Unlock PIN</span><span class="setting-desc">Use a 4-digit PIN instead of your passphrase</span></div>
-              <label class="toggle"><input type="checkbox" id="toggle-pin" /><span class="toggle-track"></span></label>
-            </div>
             <div id="setting-bio-row" class="hidden">
               <div class="settings-divider"></div>
               <div class="settings-row">
@@ -697,8 +626,8 @@
             </div>
           </div>
           <div class="settings-group">
-            <h3 class="group-label" style="color: var(--text-tertiary);">Calendar Colors</h3>
-            <p class="setting-desc" style="margin-bottom:12px;">Tap to customize your vibe</p>
+            <h3 class="group-label group-label-muted">Calendar Colors</h3>
+            <p class="setting-desc color-customizer-hint">Tap to customize your vibe</p>
             <div class="color-customizer" id="color-customizer">
               <div class="color-item" data-color-key="period">
                 <div class="color-row">
@@ -744,9 +673,15 @@
           </div>
           <div class="settings-group">
             <div class="settings-row">
-              <div class="setting-info"><span class="setting-label">Export Data</span><span class="setting-desc">Download a plaintext JSON copy</span></div>
-              <button id="btn-export" class="action-btn">Export</button>
+              <div class="setting-info"><span class="setting-label">Backup</span><span class="setting-desc">Download an encrypted .cykel backup file</span></div>
+              <button id="btn-export" class="action-btn">Backup</button>
             </div>
+            <div class="settings-divider"></div>
+            <div class="settings-row">
+              <div class="setting-info"><span class="setting-label">Restore</span><span class="setting-desc">Restore from a .cykel backup file</span></div>
+              <button id="btn-restore" class="action-btn">Restore</button>
+            </div>
+            <input type="file" id="restore-file-input" accept=".cykel" class="hidden" />
             <div class="settings-divider"></div>
             <div class="settings-row">
               <div class="setting-info"><span class="setting-label">Import from Flo</span><span class="setting-desc">Import a CSV export — processed on-device only</span></div>
