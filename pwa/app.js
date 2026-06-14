@@ -1,9 +1,9 @@
 // ============================================
-// Cykel PWA — App v3 (PIN + passphrase + biometric unlock)
+// Cykel PWA — App v3 (passphrase + biometric unlock)
 // ============================================
 
 import * as storage from './storage.js';
-import { zeroize } from './crypto.js';
+import { zeroize, encryptExport, decryptExport } from './crypto.js';
 import { rebuildCycles, predict, fertilityWindow, cycleStats, fmtDate } from './prediction.js';
 import { pandaKB, DISCLAIMER } from './panda-kb.js';
 
@@ -100,7 +100,6 @@ function skipInstallScreen() {
 
 let masterKeyBytes = null; // Uint8Array(32) — zeroed on lock
 let appData = null;
-let pinEnabled = false;    // cached flag
 let bioEnabled = false;    // cached flag
 let bioTriedThisLock = false; // prevent auto-prompt loop
 let currentYear, currentMonth;
@@ -179,9 +178,23 @@ function defaultAppData() {
 // Persistence
 // ============================================
 
-async function saveData() {
-  if (!masterKeyBytes || !appData) return;
-  await storage.save(masterKeyBytes, appData);
+// Serialize all writes through one promise chain so concurrent callers (color
+// picks, toggles, day save, import) can't interleave and clobber each other.
+let saveChain = Promise.resolve();
+
+function saveData() {
+  saveChain = saveChain
+    .catch(() => {})
+    .then(() => {
+      if (!masterKeyBytes || !appData) return;
+      return storage.save(masterKeyBytes, appData);
+    });
+  return saveChain;
+}
+
+// Wait for any in-flight/queued save to finish (used before locking).
+function flushSaves() {
+  return saveChain.catch(() => {});
 }
 
 // ============================================
@@ -216,16 +229,10 @@ async function startApp() {
     showScreen('setup');
     return;
   }
-  pinEnabled = await storage.hasPin();
   bioEnabled = await storage.hasBio();
   bioTriedThisLock = false;
 
-  if (pinEnabled) {
-    resetPinDots('pin-unlock-dots');
-    showScreen('pin-unlock');
-  } else {
-    showScreen('unlock');
-  }
+  showScreen('unlock');
   showBioButtons();
 
   // Auto-trigger biometric if available
@@ -244,8 +251,66 @@ const setupConfirm = document.getElementById('setup-confirm');
 const btnSetup = document.getElementById('btn-setup');
 const setupError = document.getElementById('setup-error');
 
+const MIN_PASSPHRASE_LENGTH = 10;
+const COMMON_PASSPHRASES = new Set([
+  'password', 'password1', 'passw0rd', '1234567890', '12345678', '123456789',
+  'qwertyuiop', 'qwerty123', 'iloveyou1', 'letmein123', 'abc1234567', '1111111111',
+  'cykelcykel', 'periodtracker', 'changeme123',
+]);
+
+// Lightweight on-device passphrase strength estimate. Rewards length, charset
+// variety, and uniqueness; penalizes common phrases. No external libraries.
+function estimateStrength(pw) {
+  if (!pw) return { score: 0, label: '', pct: 0 };
+  if (COMMON_PASSPHRASES.has(pw.toLowerCase())) return { score: 0, label: 'too common', pct: 12 };
+
+  let charset = 0;
+  if (/[a-z]/.test(pw)) charset += 26;
+  if (/[A-Z]/.test(pw)) charset += 26;
+  if (/[0-9]/.test(pw)) charset += 10;
+  if (/[^a-zA-Z0-9]/.test(pw)) charset += 33;
+  const uniqueRatio = new Set(pw).size / pw.length;
+  const bits = pw.length * Math.log2(charset || 1) * uniqueRatio;
+
+  let score, label;
+  if (pw.length < MIN_PASSPHRASE_LENGTH) { score = 1; label = 'too short'; }
+  else if (bits < 45) { score = 1; label = 'weak'; }
+  else if (bits < 65) { score = 2; label = 'fair'; }
+  else if (bits < 90) { score = 3; label = 'good'; }
+  else { score = 4; label = 'strong'; }
+
+  return { score, label, pct: Math.min(100, Math.round((bits / 100) * 100)) };
+}
+
+const passStrength = document.getElementById('pass-strength');
+const passStrengthFill = document.getElementById('pass-strength-fill');
+const passStrengthLabel = document.getElementById('pass-strength-label');
+
 function validateSetup() {
-  btnSetup.disabled = setupPass.value.length < 6 || setupPass.value !== setupConfirm.value;
+  const pw = setupPass.value;
+  const s = estimateStrength(pw);
+
+  passStrength.classList.toggle('hidden', pw.length === 0);
+  passStrengthFill.style.width = `${s.pct}%`;
+  passStrengthFill.dataset.score = String(s.score);
+  passStrengthLabel.textContent = s.label;
+  passStrengthLabel.dataset.score = String(s.score);
+
+  // Require at least "fair" strength and the minimum length; passphrase is the
+  // sole root of trust now that PIN unlock is gone.
+  const strongEnough = pw.length >= MIN_PASSPHRASE_LENGTH && s.score >= 2;
+  const matches = pw === setupConfirm.value;
+  btnSetup.disabled = !strongEnough || !matches;
+
+  if (pw && setupConfirm.value && !matches) {
+    setupError.textContent = 'Passphrases don\'t match.';
+  } else if (pw.length > 0 && pw.length < MIN_PASSPHRASE_LENGTH) {
+    setupError.textContent = `At least ${MIN_PASSPHRASE_LENGTH} characters.`;
+  } else if (pw.length >= MIN_PASSPHRASE_LENGTH && s.score < 2) {
+    setupError.textContent = 'Too easy to guess — try adding a few more words.';
+  } else {
+    setupError.textContent = '';
+  }
 }
 
 setupPass.addEventListener('input', validateSetup);
@@ -253,204 +318,34 @@ setupConfirm.addEventListener('input', validateSetup);
 setupPass.addEventListener('keydown', e => { if (e.key === 'Enter') setupConfirm.focus(); });
 setupConfirm.addEventListener('keydown', e => { if (e.key === 'Enter' && !btnSetup.disabled) btnSetup.click(); });
 
+// Show/hide passphrase toggle
+document.getElementById('btn-reveal-setup').addEventListener('click', (e) => {
+  const btn = e.currentTarget;
+  const showing = setupPass.type === 'text';
+  setupPass.type = showing ? 'password' : 'text';
+  btn.setAttribute('aria-pressed', String(!showing));
+  btn.setAttribute('aria-label', showing ? 'Show passphrase' : 'Hide passphrase');
+});
+
 btnSetup.addEventListener('click', async () => {
   setupError.textContent = '';
   btnSetup.disabled = true;
+  btnSetup.classList.add('is-loading');
   try {
     const result = await storage.setup(setupPass.value);
     setupPass.value = '';
     setupConfirm.value = '';
     masterKeyBytes = result.masterKeyBytes;
     appData = result.data;
-    // Prompt to set PIN
-    showPinSetup();
+    enterApp();
   } catch (e) {
     setupError.textContent = 'Something went wrong. Try again.';
     btnSetup.disabled = false;
     masterKeyBytes = null;
     appData = null;
+  } finally {
+    btnSetup.classList.remove('is-loading');
   }
-});
-
-// ============================================
-// PIN pad shared logic
-// ============================================
-
-const PIN_LENGTH = 4;
-
-function createPinPadHandler(dotsId, padId, onComplete) {
-  let digits = '';
-  const dotsEl = document.getElementById(dotsId);
-  const padEl = document.getElementById(padId);
-
-  function updateDots() {
-    const dots = dotsEl.querySelectorAll('.pin-dot');
-    dots.forEach((dot, i) => {
-      dot.classList.toggle('filled', i < digits.length);
-    });
-  }
-
-  function reset() {
-    digits = '';
-    updateDots();
-  }
-
-  function shake() {
-    haptic('error');
-    const dots = dotsEl.querySelectorAll('.pin-dot');
-    dots.forEach(d => d.classList.add('error'));
-    setTimeout(() => {
-      dots.forEach(d => d.classList.remove('error'));
-      reset();
-    }, 500);
-  }
-
-  padEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('.pin-key');
-    if (!btn || btn.classList.contains('pin-key-empty')) return;
-    haptic();
-
-    const key = btn.dataset.key;
-    if (key === 'delete') {
-      digits = digits.slice(0, -1);
-      updateDots();
-      return;
-    }
-
-    if (digits.length >= PIN_LENGTH) return;
-    digits += key;
-    updateDots();
-
-    if (digits.length === PIN_LENGTH) {
-      const pin = digits;
-      setTimeout(() => onComplete(pin, reset, shake), 150);
-    }
-  });
-
-  return { reset, shake };
-}
-
-function resetPinDots(dotsId) {
-  const dots = document.getElementById(dotsId).querySelectorAll('.pin-dot');
-  dots.forEach(d => {
-    d.classList.remove('filled', 'error');
-  });
-}
-
-// ============================================
-// PIN setup (after passphrase creation / from settings)
-// ============================================
-
-let pinSetupFirstEntry = '';
-let pinSetupHandler = null;
-
-function showPinSetup() {
-  pinSetupFirstEntry = '';
-  document.getElementById('pin-setup-title').textContent = 'Set a PIN';
-  document.getElementById('pin-setup-subtitle').textContent = 'For quick daily unlock';
-  document.getElementById('pin-setup-error').textContent = '';
-  resetPinDots('pin-setup-dots');
-  showScreen('pin-setup');
-
-  if (!pinSetupHandler) {
-    pinSetupHandler = createPinPadHandler('pin-setup-dots', 'pin-setup-pad', handlePinSetupComplete);
-  } else {
-    pinSetupHandler.reset();
-  }
-}
-
-async function handlePinSetupComplete(pin, reset, shake) {
-  if (!pinSetupFirstEntry) {
-    // First entry — ask to confirm
-    pinSetupFirstEntry = pin;
-    document.getElementById('pin-setup-title').textContent = 'Confirm PIN';
-    document.getElementById('pin-setup-subtitle').textContent = 'Enter the same PIN again';
-    reset();
-    return;
-  }
-
-  // Second entry — verify match
-  if (pin !== pinSetupFirstEntry) {
-    document.getElementById('pin-setup-error').textContent = 'PINs didn\'t match. Try again.';
-    pinSetupFirstEntry = '';
-    document.getElementById('pin-setup-title').textContent = 'Set a PIN';
-    document.getElementById('pin-setup-subtitle').textContent = 'For quick daily unlock';
-    shake();
-    return;
-  }
-
-  // Match! Save PIN
-  document.getElementById('pin-setup-error').textContent = '';
-  await storage.setupPin(masterKeyBytes, pin);
-  pinEnabled = true;
-  pinSetupFirstEntry = '';
-  enterApp();
-}
-
-document.getElementById('btn-skip-pin').addEventListener('click', () => {
-  pinSetupFirstEntry = '';
-  enterApp();
-});
-
-// ============================================
-// PIN unlock
-// ============================================
-
-const pinUnlockError = document.getElementById('pin-unlock-error');
-const MAX_PIN_ATTEMPTS = 3;
-
-function getFailedPinAttempts() {
-  return parseInt(localStorage.getItem('cykel_pin_fails') || '0', 10);
-}
-
-function setFailedPinAttempts(n) {
-  localStorage.setItem('cykel_pin_fails', String(n));
-}
-
-let pinUnlockHandler = null;
-
-function initPinUnlock() {
-  if (!pinUnlockHandler) {
-    pinUnlockHandler = createPinPadHandler('pin-unlock-dots', 'pin-unlock-pad', handlePinUnlock);
-  }
-}
-
-initPinUnlock();
-
-async function handlePinUnlock(pin, reset, shake) {
-  pinUnlockError.textContent = '';
-  try {
-    const result = await storage.unlockWithPin(pin);
-    masterKeyBytes = result.masterKeyBytes;
-    appData = result.data;
-    setFailedPinAttempts(0);
-    clearLockout();
-
-    if (!appData.settings) appData.settings = defaultAppData().settings;
-    appData.cycles = rebuildCycles(appData.day_logs);
-    await saveData();
-    enterApp();
-  } catch (e) {
-    const attempts = getFailedPinAttempts() + 1;
-    setFailedPinAttempts(attempts);
-
-    if (attempts >= MAX_PIN_ATTEMPTS) {
-      // PIN locked out — require passphrase
-      pinUnlockError.textContent = '';
-      setFailedPinAttempts(0);
-      showScreen('unlock');
-      return;
-    }
-
-    const remaining = MAX_PIN_ATTEMPTS - attempts;
-    pinUnlockError.textContent = `Wrong PIN. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`;
-    shake();
-  }
-}
-
-document.getElementById('btn-use-passphrase').addEventListener('click', () => {
-  showScreen('unlock');
-  showBioButtons();
 });
 
 // ============================================
@@ -544,11 +439,9 @@ async function attemptBioUnlock() {
 }
 
 function showBioButtons() {
-  document.getElementById('btn-bio-pin').classList.toggle('hidden', !bioEnabled);
   document.getElementById('btn-bio-pass').classList.toggle('hidden', !bioEnabled);
 }
 
-document.getElementById('btn-bio-pin').addEventListener('click', () => attemptBioUnlock());
 document.getElementById('btn-bio-pass').addEventListener('click', () => attemptBioUnlock());
 
 // ============================================
@@ -628,6 +521,7 @@ btnUnlock.addEventListener('click', async () => {
   unlockError.textContent = '';
   if (!pass) return;
   btnUnlock.disabled = true;
+  btnUnlock.classList.add('is-loading');
 
   try {
     const result = await storage.unlockWithPassphrase(pass);
@@ -640,13 +534,9 @@ btnUnlock.addEventListener('click', async () => {
     appData.cycles = rebuildCycles(appData.day_logs);
     await saveData();
 
-    // Check if PIN is set, offer setup if not
-    pinEnabled = await storage.hasPin();
-    if (!pinEnabled) {
-      showPinSetup();
-    } else {
-      enterApp();
-    }
+    // Purge any legacy PIN-wrapped key from older versions (insecure low-entropy wrap)
+    await storage.removePin().catch(() => {});
+    enterApp();
   } catch (e) {
     const attempts = getFailedAttempts() + 1;
     setFailedAttempts(attempts);
@@ -666,6 +556,7 @@ btnUnlock.addEventListener('click', async () => {
     wrap.classList.add('do-shake');
     setTimeout(() => wrap.classList.remove('do-shake'), 400);
   }
+  btnUnlock.classList.remove('is-loading');
   if (!lockoutTimer) btnUnlock.disabled = false;
 });
 
@@ -685,9 +576,6 @@ function enterApp() {
   document.getElementById('setting-autolock').textContent = `${autoLockMinutes} min`;
   document.getElementById('toggle-fertility').checked = showFertility;
   document.getElementById('legend-fertile').classList.toggle('hidden', !showFertility);
-
-  // Update PIN toggle in settings
-  document.getElementById('toggle-pin').checked = pinEnabled;
 
   // Update bio toggle in settings (async, non-blocking)
   document.getElementById('toggle-bio').checked = bioEnabled;
@@ -719,7 +607,7 @@ function enterApp() {
 
 function updateModeSelector() {
   document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.mode === appMode);
+    setSelected(btn, btn.dataset.mode === appMode);
   });
 }
 
@@ -1096,20 +984,17 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-function doLock() {
+async function doLock() {
   clearTimeout(autoLockTimer);
+  // Flush any pending write before discarding the key, so backgrounding the app
+  // mid-save can't lose data.
+  await flushSaves();
   zeroize(masterKeyBytes);
   masterKeyBytes = null;
   appData = null;
   bioTriedThisLock = false;
 
-  if (pinEnabled) {
-    resetPinDots('pin-unlock-dots');
-    document.getElementById('pin-unlock-error').textContent = '';
-    showScreen('pin-unlock');
-  } else {
-    showScreen('unlock');
-  }
+  showScreen('unlock');
   showBioButtons();
 
   // Auto-trigger biometric on lock
@@ -1224,7 +1109,6 @@ function renderCalendar() {
     lmpDate.setDate(lmpDate.getDate() - 280);
     const daysPregnant = daysBetweenDates(fmtDate(lmpDate), today);
     const weeksPregnant = Math.floor(daysPregnant / 7);
-    const daysExtra = daysPregnant % 7;
 
     if (weeksPregnant >= 0 && weeksPregnant <= 42) {
       const milestone = PREGNANCY_WEEKS[Math.min(weeksPregnant, 42)] || PREGNANCY_WEEKS[42];
@@ -1289,12 +1173,14 @@ function renderCalendar() {
   for (let i = 0; i < startDow; i++) {
     const cell = document.createElement('div');
     cell.className = 'cal-day is-empty';
+    cell.setAttribute('aria-hidden', 'true');
     calendarGrid.appendChild(cell);
   }
 
   for (let d = 1; d <= lastDay.getDate(); d++) {
     const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const cell = document.createElement('div');
+    const cell = document.createElement('button');
+    cell.type = 'button';
     cell.className = 'cal-day';
     cell.textContent = d;
 
@@ -1332,6 +1218,17 @@ function renderCalendar() {
       });
       cell.appendChild(dotWrap);
     }
+
+    // Accessible label describing the day's status for screen readers
+    const labelParts = [new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })];
+    if (dateStr === todayStr) labelParts.push('today');
+    if (hasFlow) labelParts.push(`${log.flow_level.toLowerCase()} flow`);
+    else if (hasSpotting) labelParts.push('spotting');
+    if (symptomMap[dateStr]) labelParts.push('symptoms logged');
+    if (log && log.moods && log.moods.length) labelParts.push('mood logged');
+    if (!hasFlow && predDates.has(dateStr)) labelParts.push('predicted period');
+    else if (!hasFlow && fertileDates.has(dateStr)) labelParts.push('fertile');
+    cell.setAttribute('aria-label', labelParts.join(', '));
 
     cell.addEventListener('click', () => { haptic(); openDayLog(dateStr, log, symptomMap[dateStr]); });
     calendarGrid.appendChild(cell);
@@ -1395,33 +1292,39 @@ function openDayLog(dateStr, existingLog, existingSymptoms) {
   showScreen('daylog');
 }
 
+// Toggle selection class + reflect it to assistive tech via aria-pressed.
+function setSelected(el, on) {
+  el.classList.toggle('active', on);
+  el.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+
 function updateFlowButtons() {
   document.querySelectorAll('.flow-opt').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.flow === selectedFlow);
+    setSelected(btn, btn.dataset.flow === selectedFlow);
   });
 }
 
 function updateMoodChips() {
   document.querySelectorAll('#mood-chips .mood-pill').forEach(chip => {
-    chip.classList.toggle('active', selectedMoods.has(chip.dataset.mood));
+    setSelected(chip, selectedMoods.has(chip.dataset.mood));
   });
 }
 
 function updateSymptomChips() {
   document.querySelectorAll('#symptom-chips .chip').forEach(chip => {
-    chip.classList.toggle('active', selectedSymptoms.has(chip.dataset.symptom));
+    setSelected(chip, selectedSymptoms.has(chip.dataset.symptom));
   });
 }
 
 function updateSelectRow(id, value) {
   document.querySelectorAll(`#${id} .select-opt`).forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.val === value);
+    setSelected(btn, btn.dataset.val === value);
   });
 }
 
 function updatePillRow(id, value) {
   document.querySelectorAll(`#${id} .pill-btn`).forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.val === value);
+    setSelected(btn, btn.dataset.val === value);
   });
 }
 
@@ -1800,6 +1703,18 @@ function renderMoodSummary() {
 }
 
 // Build printable HTML for doctor report (used by print & share)
+// Escape a value for safe interpolation into innerHTML / document.write. Defense
+// in depth: report/BC fields are app enums or validated dates today, but this
+// guarantees no future free-text field (e.g. imported notes) can inject markup.
+function escapeHtml(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function buildReportPrintHTML(stats, completed, topSymptoms, topMoods, reportNameMap, sixMonthsAgo, now) {
   const avgCycle = stats.avg_cycle_length ? Math.round(stats.avg_cycle_length) + 'd' : '--';
   const avgPeriod = stats.avg_period_length ? Math.round(stats.avg_period_length) + 'd' : '--';
@@ -1819,10 +1734,10 @@ function buildReportPrintHTML(stats, completed, topSymptoms, topMoods, reportNam
   }
 
   const symptomTags = topSymptoms.length
-    ? '<div class="tag-list">' + topSymptoms.map(([s, c]) => '<span class="tag">' + (reportNameMap[s] || s) + ' (' + c + ')</span>').join('') + '</div>'
+    ? '<div class="tag-list">' + topSymptoms.map(([s, c]) => '<span class="tag">' + escapeHtml(reportNameMap[s] || s) + ' (' + c + ')</span>').join('') + '</div>'
     : '<p>No symptoms logged yet.</p>';
   const moodTags = topMoods.length
-    ? '<div class="tag-list">' + topMoods.map(([m, c]) => '<span class="tag">' + m + ' (' + c + ')</span>').join('') + '</div>'
+    ? '<div class="tag-list">' + topMoods.map(([m, c]) => '<span class="tag">' + escapeHtml(m) + ' (' + c + ')</span>').join('') + '</div>'
     : '<p>No moods logged yet.</p>';
 
   const colorCounts = {};
@@ -1831,16 +1746,16 @@ function buildReportPrintHTML(stats, completed, topSymptoms, topMoods, reportNam
   });
   const colorEntries = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]);
   const colorTags = colorEntries.length
-    ? '<div class="tag-list">' + colorEntries.map(([c, n]) => '<span class="tag">' + c + ' (' + n + ')</span>').join('') + '</div>'
+    ? '<div class="tag-list">' + colorEntries.map(([c, n]) => '<span class="tag">' + escapeHtml(c) + ' (' + n + ')</span>').join('') + '</div>'
     : '<p>No discharge colors logged yet.</p>';
 
   const bc = appData.settings.birth_control;
   let bcHTML = '<p>None currently tracked.</p>';
   if (bc && bc.current) {
-    bcHTML = '<p>Current: <strong>' + bc.current.method + (bc.current.sub_type ? ' · ' + bc.current.sub_type : '') + '</strong> since ' + bc.current.start_date + '</p>';
+    bcHTML = '<p>Current: <strong>' + escapeHtml(bc.current.method) + (bc.current.sub_type ? ' · ' + escapeHtml(bc.current.sub_type) : '') + '</strong> since ' + escapeHtml(bc.current.start_date) + '</p>';
     if (bc.history.length) {
       bcHTML += '<table><thead><tr><th>Method</th><th>Start</th><th>End</th></tr></thead><tbody>';
-      bc.history.forEach(h => { bcHTML += '<tr><td>' + h.method + '</td><td>' + h.start_date + '</td><td>' + h.end_date + '</td></tr>'; });
+      bc.history.forEach(h => { bcHTML += '<tr><td>' + escapeHtml(h.method) + '</td><td>' + escapeHtml(h.start_date) + '</td><td>' + escapeHtml(h.end_date) + '</td></tr>'; });
       bcHTML += '</tbody></table>';
     }
   }
@@ -1935,10 +1850,10 @@ document.getElementById('btn-doctor-report').addEventListener('click', () => {
   const bc = appData.settings.birth_control;
   let bcHTML = '<p class="report-empty">None currently tracked</p>';
   if (bc && bc.current) {
-    bcHTML = '<p style="font-size:14px;color:var(--text-secondary)">Current: <strong>' + bc.current.method + '</strong> since ' + bc.current.start_date + '</p>';
+    bcHTML = '<p class="report-bc-current">Current: <strong>' + escapeHtml(bc.current.method) + '</strong> since ' + escapeHtml(bc.current.start_date) + '</p>';
     if (bc.history.length) {
       bcHTML += '<table class="report-table"><thead><tr><th>Method</th><th>Start</th><th>End</th></tr></thead><tbody>';
-      bc.history.forEach(h => { bcHTML += '<tr><td>' + h.method + '</td><td>' + h.start_date + '</td><td>' + h.end_date + '</td></tr>'; });
+      bc.history.forEach(h => { bcHTML += '<tr><td>' + escapeHtml(h.method) + '</td><td>' + escapeHtml(h.start_date) + '</td><td>' + escapeHtml(h.end_date) + '</td></tr>'; });
       bcHTML += '</tbody></table>';
     }
   }
@@ -1966,21 +1881,21 @@ document.getElementById('btn-doctor-report').addEventListener('click', () => {
     '<div class="report-card">' +
     '<div class="report-card-label">Common Symptoms</div>' +
     (topSymptoms.length
-      ? '<div class="report-tags">' + topSymptoms.map(([s, c]) => '<span class="report-tag report-tag-symptom">' + (reportNameMap[s] || s) + ' \u00b7 ' + c + '</span>').join('') + '</div>'
+      ? '<div class="report-tags">' + topSymptoms.map(([s, c]) => '<span class="report-tag report-tag-symptom">' + escapeHtml(reportNameMap[s] || s) + ' \u00b7 ' + c + '</span>').join('') + '</div>'
       : '<p class="report-empty">No symptoms logged yet</p>') +
     '</div>' +
 
     '<div class="report-card">' +
     '<div class="report-card-label">Discharge Colors</div>' +
     (colorEntries.length
-      ? '<div class="report-tags">' + colorEntries.map(([c, n]) => '<span class="report-tag">' + c + ' \u00b7 ' + n + '</span>').join('') + '</div>'
+      ? '<div class="report-tags">' + colorEntries.map(([c, n]) => '<span class="report-tag">' + escapeHtml(c) + ' \u00b7 ' + n + '</span>').join('') + '</div>'
       : '<p class="report-empty">No discharge colors logged yet</p>') +
     '</div>' +
 
     '<div class="report-card">' +
     '<div class="report-card-label">Common Moods</div>' +
     (topMoods.length
-      ? '<div class="report-tags">' + topMoods.map(([m, c]) => '<span class="report-tag report-tag-mood">' + m + ' \u00b7 ' + c + '</span>').join('') + '</div>'
+      ? '<div class="report-tags">' + topMoods.map(([m, c]) => '<span class="report-tag report-tag-mood">' + escapeHtml(m) + ' \u00b7 ' + c + '</span>').join('') + '</div>'
       : '<p class="report-empty">No moods logged yet</p>') +
     '</div>' +
 
@@ -2094,18 +2009,6 @@ document.getElementById('toggle-bio').addEventListener('change', async (e) => {
   }
 });
 
-// PIN toggle
-document.getElementById('toggle-pin').addEventListener('change', async (e) => {
-  if (e.target.checked) {
-    // Enable PIN — show setup
-    showPinSetup();
-  } else {
-    // Disable PIN
-    await storage.removePin();
-    pinEnabled = false;
-  }
-});
-
 // Auto-lock stepper
 const autolockDisplay = document.getElementById('setting-autolock');
 
@@ -2128,23 +2031,84 @@ document.getElementById('autolock-up').addEventListener('click', async () => {
 });
 
 // Export
-document.getElementById('btn-export').addEventListener('click', () => {
+function exportPlaintext() {
   if (!appData) return;
   showModal(
     'Export unencrypted?',
     'This creates a plaintext file anyone can read. Only save it somewhere private.',
-    'Export Anyway',
+    'Export plaintext',
     () => {
       const json = JSON.stringify(appData, null, 2);
-      const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `cykel-export-${fmtDate(new Date())}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+      downloadBlob(new Blob([json], { type: 'application/json' }), `cykel-export-${fmtDate(new Date())}.json`);
+    },
+    true
   );
+}
+
+document.getElementById('btn-export').addEventListener('click', () => {
+  if (!appData) return;
+  showPromptModal({
+    title: 'Encrypted backup',
+    message: 'Choose a passphrase to encrypt this backup. You\'ll need it to restore — there\'s no recovery. Keep the .cykel file somewhere safe.',
+    placeholder: 'Backup passphrase',
+    confirmLabel: 'Export encrypted',
+    requireConfirm: true,
+    secondaryLabel: 'Export as plaintext instead',
+    onSecondary: exportPlaintext,
+    onSubmit: async (pass) => {
+      try {
+        const json = new TextEncoder().encode(JSON.stringify(appData));
+        const enc = await encryptExport(pass, json);
+        downloadBlob(new Blob([enc], { type: 'application/octet-stream' }), `cykel-backup-${fmtDate(new Date())}.cykel`);
+      } catch {
+        showModal('Export failed', 'Could not create the backup. Try again.', 'OK', () => {});
+      }
+    }
+  });
+});
+
+document.getElementById('btn-restore').addEventListener('click', () => {
+  if (!appData) return;
+  showModal(
+    'Restore from backup?',
+    'Select a .cykel backup file. Days merge with your current data — anything you already have is kept.',
+    'Choose File',
+    () => document.getElementById('restore-file-input').click()
+  );
+});
+
+document.getElementById('restore-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+
+  let bytes;
+  try {
+    bytes = new Uint8Array(await file.arrayBuffer());
+  } catch {
+    showModal('Restore failed', 'Could not read the file.', 'OK', () => {});
+    return;
+  }
+
+  showPromptModal({
+    title: 'Enter backup passphrase',
+    message: 'The passphrase you chose when you created this backup.',
+    placeholder: 'Backup passphrase',
+    confirmLabel: 'Restore',
+    onSubmit: async (pass) => {
+      try {
+        const plain = await decryptExport(pass, bytes);
+        const data = JSON.parse(new TextDecoder().decode(plain));
+        const result = mergeBackup(data);
+        appData.cycles = rebuildCycles(appData.day_logs);
+        await saveData();
+        renderCalendar();
+        showModal('Restore complete', `Added ${result.added} days. ${result.skipped} skipped (already had data or invalid).`, 'OK', () => {});
+      } catch (err) {
+        showModal('Restore failed', err.message || 'Wrong passphrase or invalid file.', 'OK', () => {});
+      }
+    }
+  });
 });
 
 // Wipe
@@ -2169,7 +2133,6 @@ document.getElementById('btn-wipe').addEventListener('click', () => {
       zeroize(masterKeyBytes);
       masterKeyBytes = null;
       appData = null;
-      pinEnabled = false;
       bioEnabled = false;
       clearLockout();
       showScreen('setup');
@@ -2204,7 +2167,7 @@ function renderBirthControl() {
       const item = document.createElement('div');
       item.className = 'bc-history-item';
       const histLabel = h.sub_type ? `${h.method} · ${h.sub_type}` : h.method;
-      item.innerHTML = `<span class="bc-history-method">${histLabel}</span><span class="bc-history-dates">${fmtDateShort(h.start_date)} — ${fmtDateShort(h.end_date)}</span>`;
+      item.innerHTML = `<span class="bc-history-method">${escapeHtml(histLabel)}</span><span class="bc-history-dates">${escapeHtml(fmtDateShort(h.start_date))} — ${escapeHtml(fmtDateShort(h.end_date))}</span>`;
       historyList.appendChild(item);
     });
   } else {
@@ -2261,7 +2224,7 @@ document.getElementById('btn-bc-change').addEventListener('click', () => {
 
 function updateBcGrid() {
   document.querySelectorAll('#bc-grid .bc-opt').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.bc === bcSelectedMethod);
+    setSelected(btn, btn.dataset.bc === bcSelectedMethod);
   });
 }
 
@@ -2282,7 +2245,7 @@ document.getElementById('bc-sub-options').addEventListener('click', e => {
   haptic();
   bcSelectedSubType = btn.dataset.sub;
   document.querySelectorAll('#bc-sub-options .bc-sub-opt').forEach(b => {
-    b.classList.toggle('active', b.dataset.sub === bcSelectedSubType);
+    setSelected(b, b.dataset.sub === bcSelectedSubType);
   });
 });
 
@@ -2495,7 +2458,7 @@ document.getElementById('import-file-input').addEventListener('change', async (e
 });
 
 function parseFloCsv(text) {
-  const lines = text.trim().split('\n');
+  const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) return { days: [] };
 
   const header = lines[0].toLowerCase();
@@ -2662,6 +2625,33 @@ function mergeFloData(parsed) {
   return { added, skipped };
 }
 
+// Merge a decrypted .cykel backup into current data (non-destructive: existing days win).
+function mergeBackup(data) {
+  if (!data || !Array.isArray(data.day_logs)) throw new Error('Invalid backup contents');
+  let added = 0, skipped = 0;
+  const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+  const existingDates = new Set(appData.day_logs.map(l => l.date));
+
+  for (const log of data.day_logs) {
+    if (!log || typeof log.date !== 'string' || !dateRe.test(log.date)) { skipped++; continue; }
+    if (existingDates.has(log.date)) { skipped++; continue; }
+    appData.day_logs.push(log);
+    existingDates.add(log.date);
+    added++;
+  }
+
+  if (Array.isArray(data.symptoms)) {
+    const haveSym = new Set(appData.symptoms.map(s => `${s.date}|${s.symptom_type}`));
+    for (const s of data.symptoms) {
+      if (!s || typeof s.date !== 'string' || !dateRe.test(s.date)) continue;
+      const k = `${s.date}|${s.symptom_type}`;
+      if (!haveSym.has(k)) { appData.symptoms.push(s); haveSym.add(k); }
+    }
+  }
+
+  return { added, skipped };
+}
+
 // ============================================
 // Modal
 // ============================================
@@ -2699,6 +2689,100 @@ function showModal(title, message, confirmLabel, onConfirm, destructive = false)
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) close();
   });
+}
+
+// Modal with passphrase input(s). Built with DOM nodes (no innerHTML) for safety.
+function showPromptModal(opts) {
+  const existing = document.getElementById('cykel-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'cykel-modal';
+  overlay.className = 'modal-overlay';
+
+  const card = document.createElement('div');
+  card.className = 'modal-card';
+
+  const h = document.createElement('h3');
+  h.className = 'modal-title';
+  h.textContent = opts.title;
+
+  const p = document.createElement('p');
+  p.className = 'modal-message';
+  p.textContent = opts.message;
+
+  const input = document.createElement('input');
+  input.type = 'password';
+  input.className = 'modal-input';
+  input.placeholder = opts.placeholder || 'Passphrase';
+  input.autocomplete = 'off';
+
+  let confirmInput = null;
+  if (opts.requireConfirm) {
+    confirmInput = document.createElement('input');
+    confirmInput.type = 'password';
+    confirmInput.className = 'modal-input';
+    confirmInput.placeholder = 'Confirm passphrase';
+    confirmInput.autocomplete = 'off';
+  }
+
+  const err = document.createElement('p');
+  err.className = 'modal-input-error';
+
+  const actions = document.createElement('div');
+  actions.className = 'modal-actions';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'modal-btn modal-cancel';
+  cancelBtn.textContent = 'Cancel';
+  const okBtn = document.createElement('button');
+  okBtn.className = 'modal-btn modal-confirm';
+  okBtn.textContent = opts.confirmLabel || 'OK';
+  actions.append(cancelBtn, okBtn);
+
+  card.append(h, p, input);
+  if (confirmInput) card.append(confirmInput);
+  card.append(err, actions);
+
+  const close = () => {
+    overlay.classList.remove('modal-visible');
+    setTimeout(() => overlay.remove(), 200);
+  };
+
+  if (opts.secondaryLabel) {
+    const sec = document.createElement('button');
+    sec.className = 'btn-text modal-secondary';
+    sec.textContent = opts.secondaryLabel;
+    sec.addEventListener('click', () => { close(); if (opts.onSecondary) opts.onSecondary(); });
+    card.append(sec);
+  }
+
+  overlay.append(card);
+  document.getElementById('app').appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('modal-visible'));
+  setTimeout(() => input.focus(), 50);
+
+  const submit = () => {
+    const val = input.value;
+    if (val.length < 6) { err.textContent = 'At least 6 characters.'; return; }
+    if (confirmInput && val !== confirmInput.value) { err.textContent = 'Passphrases don\'t match.'; return; }
+    close();
+    opts.onSubmit(val);
+  };
+
+  cancelBtn.addEventListener('click', close);
+  okBtn.addEventListener('click', submit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { confirmInput ? confirmInput.focus() : submit(); } });
+  if (confirmInput) confirmInput.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ============================================
@@ -2877,7 +2961,7 @@ function openPandaChat() {
         </button>
       </div>
       <div class="panda-disclaimer">${DISCLAIMER}</div>
-      <div class="panda-messages">
+      <div class="panda-messages" role="log" aria-live="polite" aria-relevant="additions" aria-label="Chat with Period Panda">
         <div class="panda-welcome">
           <div class="panda-welcome-avatar panda-anim-wave">${PANDA_SVG}</div>
           <div class="panda-welcome-title">hey, i'm period panda</div>
@@ -3137,8 +3221,8 @@ function getCyclePhaseForHint() {
   }
 
   // Check if period is late
-  if (pred && pred.next_period_start) {
-    const daysUntilPeriod = daysBetweenDates(today, pred.next_period_start);
+  if (pred && pred.predicted_start) {
+    const daysUntilPeriod = daysBetweenDates(today, pred.predicted_start);
     if (daysUntilPeriod < -3) return 'late';
   }
 
@@ -3148,8 +3232,8 @@ function getCyclePhaseForHint() {
   }
 
   // Check if in luteal phase (after ovulation, before predicted period)
-  if (pred && pred.next_period_start) {
-    const daysUntilPeriod = daysBetweenDates(today, pred.next_period_start);
+  if (pred && pred.predicted_start) {
+    const daysUntilPeriod = daysBetweenDates(today, pred.predicted_start);
     if (daysUntilPeriod >= 0 && daysUntilPeriod <= 14) return 'luteal';
   }
 

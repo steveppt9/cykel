@@ -214,6 +214,58 @@ export async function unwrapKeyWithBio(wrapped, prfOutput) {
   }
 }
 
+const EXPORT_MAGIC = new TextEncoder().encode('CYKEL_BACKUP_V1');
+
+/**
+ * Encrypt an exportable backup with a user-chosen passphrase (PBKDF2 + AES-GCM).
+ * Returns: Uint8Array of salt(32) || iv(12) || ciphertext (magic inside ciphertext).
+ */
+export async function encryptExport(passphrase, plaintext) {
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN));
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN));
+  const key = await deriveWrappingKey(passphrase, salt, PASSPHRASE_ITERATIONS);
+
+  const payload = new Uint8Array(EXPORT_MAGIC.length + plaintext.length);
+  payload.set(EXPORT_MAGIC, 0);
+  payload.set(plaintext, EXPORT_MAGIC.length);
+
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, payload);
+
+  const result = new Uint8Array(SALT_LEN + IV_LEN + ciphertext.byteLength);
+  result.set(salt, 0);
+  result.set(iv, SALT_LEN);
+  result.set(new Uint8Array(ciphertext), SALT_LEN + IV_LEN);
+  return result;
+}
+
+/**
+ * Decrypt a backup produced by encryptExport.
+ * Returns: Uint8Array plaintext. Throws on wrong passphrase or wrong file type.
+ */
+export async function decryptExport(passphrase, data) {
+  const salt = data.slice(0, SALT_LEN);
+  const iv = data.slice(SALT_LEN, SALT_LEN + IV_LEN);
+  const ciphertext = data.slice(SALT_LEN + IV_LEN);
+  const key = await deriveWrappingKey(passphrase, salt, PASSPHRASE_ITERATIONS);
+
+  let decrypted;
+  try {
+    decrypted = new Uint8Array(
+      await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext)
+    );
+  } catch {
+    throw new Error('Wrong passphrase or corrupted file');
+  }
+
+  for (let i = 0; i < EXPORT_MAGIC.length; i++) {
+    if (decrypted[i] !== EXPORT_MAGIC[i]) {
+      throw new Error('Not a valid Cykel backup');
+    }
+  }
+
+  return decrypted.slice(EXPORT_MAGIC.length);
+}
+
 /**
  * Legacy v1 decrypt: passphrase derives key directly from salt in blob.
  * Used only for migration from old format.
