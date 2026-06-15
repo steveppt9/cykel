@@ -23,10 +23,13 @@ src-tauri/gen/
 # Data
 *.cykel
 
-# Planning docs & grant applications
+# Planning docs, grants & funding (private — kept out of the public repo)
+funding/
 PLAN-*.md
 GRANT-*.md
 GRANT-*.docx
+GRANT-*.txt
+*.xlsx
 
 # Claude
 .claude/
