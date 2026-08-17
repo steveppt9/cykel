@@ -2112,17 +2112,6 @@ document.getElementById('restore-file-input').addEventListener('change', async (
 });
 
 // Wipe
-document.getElementById('btn-copy-ln').addEventListener('click', () => {
-  const addr = document.getElementById('lightning-addr').textContent;
-  navigator.clipboard.writeText(addr).then(() => {
-    const btn = document.getElementById('btn-copy-ln');
-    btn.textContent = 'Copied!';
-    btn.classList.add('btn-copied');
-    haptic('success');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('btn-copied'); }, 2000);
-  });
-});
-
 document.getElementById('btn-wipe').addEventListener('click', () => {
   showModal(
     'Erase everything?',
