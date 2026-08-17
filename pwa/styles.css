@@ -1154,31 +1154,33 @@ input, textarea {
   margin-bottom: var(--s-sm);
 }
 
-.lightning-address-row {
+.donate-row {
   display: flex;
-  align-items: center;
-  gap: var(--s-md);
-  padding: var(--s-md) var(--s-lg);
-  background: rgba(123, 104, 196, 0.06);
-  border-radius: var(--r-md);
-  border: 1px solid rgba(123, 104, 196, 0.12);
+  gap: var(--s-sm);
 }
 
-.lightning-icon {
-  color: #F7931A;
-  flex-shrink: 0;
-  display: flex;
-}
-
-.lightning-addr {
+.donate-btn {
+  flex: 1;
+  padding: 10px 16px;
+  text-align: center;
+  background: rgba(123, 104, 196, 0.12);
+  border: 1px solid rgba(123, 104, 196, 0.2);
+  border-radius: var(--r-full);
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.donate-btn:active {
+  transform: scale(0.96);
+  background: rgba(123, 104, 196, 0.2);
+}
+
+.donate-btn-secondary {
+  background: var(--border-subtle);
+  border-color: transparent;
+  color: var(--text-secondary);
 }
 
 .support-hint {
@@ -1186,10 +1188,6 @@ input, textarea {
   color: var(--text-tertiary);
   margin-top: var(--s-sm);
   line-height: 1.4;
-}
-
-.btn-copied {
-  color: var(--symptom) !important;
 }
 
 .danger-zone {

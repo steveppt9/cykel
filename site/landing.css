@@ -75,10 +75,10 @@ a { color: inherit; text-decoration: none; }
 
 /* ---- Brand mark ---- */
 .brand-mark {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   border-radius: var(--r-full);
-  background: linear-gradient(135deg, var(--accent), #D4937E);
+  background: #130A22 url('brand-mark.png') center / cover no-repeat;
   box-shadow: 0 0 12px var(--accent-glow);
   display: inline-block;
   flex-shrink: 0;
@@ -435,7 +435,8 @@ section.how, section.privacy, section.faq {
 .footer-links { display: flex; gap: 24px; font-size: 14.5px; color: var(--text-secondary); }
 .footer-links a:hover { color: var(--text); }
 .footer-fund { font-size: 13.5px; color: var(--text-tertiary); max-width: 60ch; }
-.footer-fund .ln { color: var(--text-secondary); word-break: break-all; }
+.footer-fund a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 2px; }
+.footer-fund a:hover { color: var(--text); }
 .footer-legal {
   display: flex;
   justify-content: space-between;
